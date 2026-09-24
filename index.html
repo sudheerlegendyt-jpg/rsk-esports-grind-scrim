@@ -1766,8 +1766,47 @@
         function rankCls(r){return r<=3?'bg-amber-400/20 border-amber-300/60 text-amber-100':r===4?'bg-purple-500/20 border-purple-300/50 text-purple-100':r<=8?'bg-sky-500/15 border-sky-300/40 text-sky-100':'bg-black/30 border-esports-lightPurple/30 text-white';}
         
         function renderResultTable(res){
-            const rows=(res.rows||[]).slice(0, 8);
-            return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left"><div class="flex justify-between items-center mb-3 pb-2 border-b border-esports-lightPurple/40"><span class="text-xs font-rajdhani font-bold text-esports-yellow">DATE: ${esc(res.date)} • ${esc(res.lobby||'L1')} (TOP 8 TEAMS)</span><span class="text-[10px] font-mono text-gray-400">${esc(res.slot)}</span></div>${res.tournamentName?`<div class="text-[10px] text-gray-400 font-rajdhani font-bold mb-2 text-center uppercase">${esc(res.tournamentName)}</div>`:''}<div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40"><table class="w-full min-w-[520px] text-[11px] font-rajdhani font-bold border-collapse"><thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2">#</th><th class="px-2 py-2 text-left">TEAM NAME</th><th class="px-2 py-2">MP</th><th class="px-2 py-2">WIN</th><th class="px-2 py-2">POS.</th><th class="px-2 py-2">KILLS</th><th class="px-2 py-2">TOTAL</th></tr></thead><tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r,i)=>`<tr class="border ${rankCls(i+1)}"><td class="px-2 py-2 text-center">${i+1}</td><td class="px-2 py-2 whitespace-nowrap">${esc(r.teamName)}</td><td class="px-2 py-2 text-center">${r.mp}</td><td class="px-2 py-2 text-center">${r.win}</td><td class="px-2 py-2 text-center">${r.pos}</td><td class="px-2 py-2 text-center">${r.kills}</td><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${r.total}</td></tr>`).join('')}</tbody></table></div></div>`;
+            // Ensure rows are sorted by points and strictly sliced to only Rank 1 through Rank 8
+            const sortedRows = [...(res.rows || [])].sort((a,b) => (Number(b.total)||0) - (Number(a.total)||0) || (Number(b.win)||0) - (Number(a.win)||0) || (Number(b.kills)||0) - (Number(a.kills)||0) || (Number(b.pos)||0) - (Number(a.pos)||0));
+            const top8Rows = sortedRows.slice(0, 8);
+
+            return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left">
+                <div class="flex justify-between items-center mb-3 pb-2 border-b border-esports-lightPurple/40">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-amber-500/20 text-amber-300 border border-amber-400/60 text-[10px] font-rajdhani font-extrabold px-2 py-0.5 rounded">TOP 8 STANDINGS</span>
+                        <span class="text-xs font-rajdhani font-bold text-esports-yellow">DATE: ${esc(res.date)} • ${esc(res.lobby||'L1')}</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-gray-400">${esc(res.slot)}</span>
+                </div>
+                ${res.tournamentName?`<div class="text-[10px] text-gray-400 font-rajdhani font-bold mb-2 text-center uppercase">${esc(res.tournamentName)}</div>`:''}
+                <div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40">
+                    <table class="w-full min-w-[520px] text-[11px] font-rajdhani font-bold border-collapse">
+                        <thead>
+                            <tr class="bg-esports-purple text-esports-yellow">
+                                <th class="px-2 py-2 text-center">RANK</th>
+                                <th class="px-2 py-2 text-left">TEAM NAME</th>
+                                <th class="px-2 py-2 text-center">MP</th>
+                                <th class="px-2 py-2 text-center">WIN</th>
+                                <th class="px-2 py-2 text-center">POS.</th>
+                                <th class="px-2 py-2 text-center">KILLS</th>
+                                <th class="px-2 py-2 text-center font-extrabold">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-esports-lightPurple/30">
+                            ${top8Rows.map((r,i)=>`
+                            <tr class="border ${rankCls(i+1)}">
+                                <td class="px-2 py-2 text-center font-extrabold text-esports-yellow">#${i+1}</td>
+                                <td class="px-2 py-2 whitespace-nowrap font-bold">${esc(r.teamName)}</td>
+                                <td class="px-2 py-2 text-center">${r.mp}</td>
+                                <td class="px-2 py-2 text-center">${r.win}</td>
+                                <td class="px-2 py-2 text-center">${r.pos}</td>
+                                <td class="px-2 py-2 text-center">${r.kills}</td>
+                                <td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${r.total}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
         }
 
         function renderResultSlide(){
@@ -1788,7 +1827,7 @@
             if(!res) return;
             const box=document.getElementById('resultList');
             if(res.type==='pc'||Array.isArray(res.rows)){
-                const copy={...res,rows:(res.rows||[])};
+                const copy={...res,rows:(res.rows||[]).slice(0, 8)};
                 box.innerHTML=renderResultTable(copy)+`<button type="button" onclick="renderResultSlide()" class="w-full mt-3 bg-esports-purple border border-esports-lightPurple text-white font-rajdhani font-bold py-2 rounded-lg"><i class="fa-solid fa-arrow-left mr-1"></i> BACK TO RESULTS</button>`;
                 return;
             }
