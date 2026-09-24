@@ -86,10 +86,10 @@
 <body class="bg-grid min-h-screen flex flex-col justify-between selection:bg-esports-yellow selection:text-black">
 
     <!-- 1. TOP MOST HIGHLIGHTED ENTRY BANNER BOX -->
-    <div class="bg-gradient-to-r from-esports-yellow via-amber-400 to-esports-yellow text-black py-2.5 px-4 text-center font-teko text-2xl md:text-3xl font-extrabold tracking-wider shadow-lg border-b-2 border-amber-600 flex items-center justify-center gap-2">
-        <i class="fa-solid fa-ticket animate-bounce text-xl md:text-2xl"></i>
+    <div class="bg-gradient-to-r from-esports-yellow via-amber-400 to-esports-yellow text-black py-0.5 px-3 text-center font-teko text-[15px] md:text-lg leading-tight font-extrabold tracking-wide shadow-md border-b border-amber-600 flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-ticket animate-bounce text-xs md:text-sm"></i>
         <span id="topBannerTextDisplay">ENTRY - 40 / 50 / 60 / 70 RS ONLY</span>
-        <i class="fa-solid fa-fire text-red-600 ml-1"></i>
+        <i class="fa-solid fa-fire text-red-600 ml-0.5 text-xs md:text-sm"></i>
     </div>
 
     <!-- SMALL MAIN-SCREEN NOTICE POPUP -->
@@ -145,8 +145,14 @@
     <header class="bg-esports-darkPurple border-b border-esports-lightPurple sticky top-0 z-40 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-esports-yellow text-black font-teko text-3xl px-3 py-1 font-bold rounded tracking-wider shadow-lg">
-                    RSK
+                <div class="flex flex-col items-center gap-1">
+                    <div class="bg-esports-yellow text-black font-teko text-3xl px-3 py-1 font-bold rounded tracking-wider shadow-lg">
+                        RSK
+                    </div>
+                    <button type="button" onclick="contactSupportWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-500 border border-emerald-300 text-white px-1.5 py-0.5 rounded-md font-teko text-[12px] leading-tight whitespace-nowrap font-bold flex items-center justify-center gap-1 transition-all hover:scale-105 shadow-lg">
+                        <i class="fa-brands fa-whatsapp text-[10px]"></i>
+                        CONTACT US
+                    </button>
                 </div>
                 <div>
                     <h1 class="font-teko text-2xl md:text-3xl font-bold tracking-wider leading-none text-white">
@@ -200,15 +206,15 @@
 
     <!-- MATCH RESULTS QUICK ACCESS -->
     <div class="max-w-7xl mx-auto w-full px-4 pt-5">
-        <div class="flex flex-wrap items-center justify-center gap-3">
-            <button onclick="openResultModal()" class="bg-gradient-to-r from-amber-500/20 to-esports-purple border border-esports-yellow text-esports-yellow px-4 py-1.5 rounded-lg font-teko text-lg font-bold flex items-center justify-center gap-2 transition-all hover:scale-105 shadow-lg">
-                <i class="fa-solid fa-trophy text-sm"></i>
-                MATCH RESULTS
-                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        <div class="flex flex-nowrap items-center justify-center gap-1 sm:gap-2">
+            <button onclick="openResultModal()" class="bg-gradient-to-r from-amber-500/20 to-esports-purple border border-esports-yellow text-esports-yellow px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg font-teko text-[15px] sm:text-lg tracking-wide leading-tight whitespace-nowrap font-bold flex items-center justify-center gap-1 sm:gap-2 transition-all hover:scale-105 shadow-lg">
+                <i class="fa-solid fa-trophy text-[10px] sm:text-sm"></i>
+                VIEW POINT TABLE
+                <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px]"></i>
             </button>
-            <button type="button" onclick="contactSupportWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 border border-emerald-300 text-white px-4 py-1.5 rounded-lg font-teko text-lg font-bold flex items-center justify-center gap-2 transition-all hover:scale-105 shadow-lg">
-                <i class="fa-brands fa-whatsapp text-sm"></i>
-                CONTACT US
+            <button type="button" onclick="openSlotListModal()" class="bg-gradient-to-r from-sky-600 to-esports-lightPurple border border-esports-yellow text-white px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg font-teko text-[15px] sm:text-lg tracking-wide leading-tight whitespace-nowrap font-bold flex items-center justify-center gap-1 sm:gap-2 transition-all hover:scale-105 shadow-lg">
+                <i class="fa-solid fa-list-check text-[10px] sm:text-sm text-esports-yellow"></i>
+                GET IDP / SLOT LIST
             </button>
         </div>
     </div>
@@ -380,6 +386,42 @@
                     CLOSE
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN FIREBASE LOGIN (needed to save to Realtime Database) -->
+    <div id="adminFbAuthModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[75] flex items-center justify-center p-4">
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <i class="fa-solid fa-user-shield text-4xl text-esports-yellow mb-2"></i>
+            <h3 class="font-teko text-3xl font-bold text-white leading-none mb-4">ADMIN LOGIN</h3>
+            <input type="email" id="adminFbEmailInput" autocomplete="username" aria-label="Email" class="w-full mb-3 bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
+            <input type="password" id="adminFbPassInput" autocomplete="current-password" aria-label="Password" onkeydown="if(event.key==='Enter'){submitAdminFbAuth();}" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
+            <p id="adminFbAuthError" class="hidden mt-2 text-xs font-rajdhani font-bold text-red-400"></p>
+            <div class="flex gap-3 mt-4">
+                <button type="button" id="adminFbAuthBtn" onclick="submitAdminFbAuth()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">LOGIN</button>
+                <button type="button" onclick="closeAdminFbAuthModal()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-teko text-2xl font-bold py-2 rounded-xl">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GET IDP / SLOT LIST (VIEWER) -->
+    <div id="slotListModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-center overflow-y-auto" style="max-height:calc(100vh - 24px)">
+            <button onclick="closeSlotListModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <i class="fa-solid fa-list-check text-4xl text-esports-yellow mb-2"></i>
+            <h3 class="font-teko text-3xl font-bold text-white leading-none">GET IDP / SLOT LIST</h3>
+            <p class="text-xs text-gray-400 font-rajdhani mb-4">Apna secret code daalein aur apna group, slot list, room ID & password dekhein</p>
+
+            <div id="slotCodeStep" class="text-left">
+                <label class="block text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-1">Secret Code *</label>
+                <input type="text" id="slotSecretCodeInput" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="Enter your secret code" onkeydown="if(event.key==='Enter'){submitSlotSecretCode();}" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold uppercase focus:border-esports-yellow focus:outline-none">
+                <p id="slotCodeError" class="hidden mt-2 text-xs font-rajdhani font-bold text-red-400"></p>
+                <button type="button" id="slotCodeSubmitBtn" onclick="submitSlotSecretCode()" class="w-full mt-4 bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl shadow-lg">SUBMIT CODE</button>
+            </div>
+
+            <div id="slotGroupStep" class="hidden text-left space-y-4"></div>
         </div>
     </div>
 
@@ -587,22 +629,6 @@
     </div>
 
     <!-- MODAL 3: ADMIN LOGIN -->
-    <div id="adminLoginModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-sm w-full p-6 text-center relative">
-            <button onclick="closeAdminLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h3 class="font-teko text-3xl font-bold text-white mb-4">ADMIN LOGIN</h3>
-            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
-                <input type="password" id="adminPassInput" required placeholder="Enter Admin Passcode" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
-                <div class="flex gap-2">
-                    <button type="button" onclick="closeAdminLoginModal()" class="w-1/3 bg-gray-700 text-white font-teko text-xl font-bold py-2 rounded-xl">BACK</button>
-                    <button type="submit" class="w-2/3 bg-esports-yellow text-black font-teko text-xl font-bold py-2 rounded-xl">LOGIN</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- ADMIN PANEL DASHBOARD -->
     <div id="adminDashboard" class="fixed inset-0 bg-black/95 backdrop-blur-lg hidden z-50 overflow-y-auto p-4 md:p-8">
         <div class="max-w-7xl mx-auto space-y-6">
@@ -710,6 +736,71 @@
                     <div id="adminResultsManagerList" class="space-y-3">
                         <!-- Uploaded Results Cards -->
                     </div>
+                </div>
+            </div>
+
+            <!-- ADMIN: SLOT LIST / ROOM ID & PASS / SECRET CODE SECTION -->
+            <div class="bg-esports-darkPurple border border-esports-yellow p-6 rounded-xl shadow-xl space-y-4">
+                <h3 class="font-teko text-3xl font-bold text-esports-yellow border-b border-esports-lightPurple pb-2">
+                    <i class="fa-solid fa-list-check mr-2"></i>SECRET CODE, ROOM ID & PASS (GET IDP)
+                </h3>
+                <p class="text-xs font-rajdhani text-gray-300">Har lobby + time slot ka alag secret code set karein. Viewer wo code daalega to sirf usi group ka slot list, room ID aur password dikhega. Sab realtime database me save hota hai.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Lobby *</label>
+                        <select id="adminSlRoomLobby" onchange="slFillRoomForm()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Time Slot *</label>
+                        <select id="adminSlRoomSlot" onchange="slFillRoomForm()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="1-3 PM">1:00 PM - 3:00 PM</option><option value="3-5 PM">3:00 PM - 5:00 PM</option><option value="7-9 PM">7:00 PM - 9:00 PM</option><option value="9-11 PM">9:00 PM - 11:00 PM</option><option value="11-1 AM">11:00 PM - 1:00 AM</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Secret Code *</label>
+                        <input type="text" id="adminSlRoomCode" maxlength="30" autocomplete="off" placeholder="e.g. RSK1L1" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani uppercase"></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Match Number *</label>
+                        <select id="adminSlRoomMatch" onchange="slFillRoomForm()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="1">MATCH 1</option><option value="2">MATCH 2</option><option value="3">MATCH 3</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room ID</label>
+                        <input type="text" id="adminSlRoomId" maxlength="60" autocomplete="off" placeholder="Room ID" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room Password</label>
+                        <input type="text" id="adminSlRoomPass" maxlength="60" autocomplete="off" placeholder="Password" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
+                </div>
+                <button type="button" onclick="saveSlotRoomDetails()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">SAVE SECRET CODE / ROOM ID & PASS</button>
+
+                <div class="pt-4 border-t border-esports-lightPurple/50">
+                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2">ALL GROUPS (CODE / ROOM ID / PASS)</h4>
+                    <div id="adminSlRoomsManager" class="space-y-3"></div>
+                </div>
+
+                <h3 class="font-teko text-3xl font-bold text-esports-yellow border-b border-esports-lightPurple pb-2 pt-4">
+                    <i class="fa-solid fa-clipboard-list mr-2"></i>UPLOAD & MANAGE SLOT LISTS
+                </h3>
+                <p class="text-xs font-rajdhani text-gray-300">.PC file ya JPG/PNG photo se slot list upload karein. Viewer ko usi lobby + time slot ki latest date ki list dikhegi.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Lobby *</label>
+                        <select id="adminSlLobby" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Time Slot *</label>
+                        <select id="adminSlSlot" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="1-3 PM">1:00 PM - 3:00 PM</option><option value="3-5 PM">3:00 PM - 5:00 PM</option><option value="7-9 PM">7:00 PM - 9:00 PM</option><option value="9-11 PM">9:00 PM - 11:00 PM</option><option value="11-1 AM">11:00 PM - 1:00 AM</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Match Date *</label>
+                        <input type="date" id="adminSlDateInput" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
+                    <div class="md:col-span-2"><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Upload .PC Slot List File(s)</label>
+                        <input type="file" id="adminSlPcInput" accept=".pc,application/octet-stream" multiple onchange="stageSlotFiles('pc')" class="w-full text-xs text-gray-300 bg-black/50 p-2 border border-esports-lightPurple rounded-lg font-rajdhani">
+                        <input type="hidden" id="adminSlReplaceId" value=""></div>
+                    <div class="md:col-span-5"><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Upload Slot List Photo (JPG / PNG)</label>
+                        <input type="file" id="adminSlImageInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple onchange="stageSlotFiles('image')" class="w-full text-xs text-gray-300 bg-black/50 p-2 border border-esports-lightPurple rounded-lg font-rajdhani"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button type="button" onclick="saveSlotList('pc')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">ADD / REPLACE .PC SLOT LIST</button>
+                    <button type="button" onclick="saveSlotList('image')" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">UPLOAD SLOT LIST PHOTO</button>
+                </div>
+
+                <div id="adminSlPreviewPanel" class="hidden pt-4 border-t border-esports-yellow/40">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <h4 class="font-teko text-2xl text-esports-yellow font-bold">ADMIN VIEW / EDIT BEFORE SAVE</h4>
+                        <button type="button" onclick="slClearPending()" class="bg-red-600/80 hover:bg-red-600 text-white text-xs font-rajdhani font-bold px-3 py-1.5 rounded-lg">CLEAR</button>
+                    </div>
+                    <div id="adminSlPreviewList" class="space-y-3"></div>
+                </div>
+
+                <div class="pt-4 border-t border-esports-lightPurple/50">
+                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2">MANAGED UPLOADED SLOT LISTS</h4>
+                    <div id="adminSlListsManager" class="space-y-3"></div>
                 </div>
             </div>
 
@@ -904,6 +995,7 @@
     <!-- Firebase Realtime Database (used for .PC match results synchronization) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
     <!-- LOGIC JS -->
     <script>
@@ -1005,7 +1097,6 @@
         const DEFAULT_CONFIG = {
             upiId: "7317601274@upi",
             customQrImage: "",
-            adminPass: "9793694317",
             noticeText: "",
             noticeImage: "",
             showTopBannerNotice: false,
@@ -1941,31 +2032,21 @@
 
         // ADMIN FUNCTIONS
         function openAdminLoginModal() {
-            document.getElementById('adminPassInput').value = '';
-            document.getElementById('adminLoginModal').classList.remove('hidden');
+            if (slAuthOk()) { openAdminDashboard(); return; }
+            slOpenDashboardAfterLogin = true;
+            slShowAdminAuthModal();
         }
 
-        function closeAdminLoginModal() {
-            document.getElementById('adminLoginModal').classList.add('hidden');
-        }
-
-        function handleAdminLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('adminPassInput').value;
-            if(pass === '9793694317') {
-                requestNotificationPermission();
-
-                document.getElementById('adminLoginModal').classList.add('hidden');
-                loadAdminFormValues();
-                renderAdminPoolEditor();
-                renderBookedSlotsTable();
-                renderAdminResultsManager();
-                renderAdminRank1Announcements();
-                checkAdminNotificationAlert();
-                document.getElementById('adminDashboard').classList.remove('hidden');
-            } else {
-                alert('Wrong passcode!');
-            }
+        function openAdminDashboard() {
+            requestNotificationPermission();
+            loadAdminFormValues();
+            renderAdminPoolEditor();
+            renderBookedSlotsTable();
+            renderAdminResultsManager();
+            adminSlotAuthThenStart();
+            renderAdminRank1Announcements();
+            checkAdminNotificationAlert();
+            document.getElementById('adminDashboard').classList.remove('hidden');
         }
 
         function closeAdminDashboard() {
@@ -2216,6 +2297,7 @@
         }
 
         function saveMatchResultPc(){
+            if (!slRequireAdmin()) return;
             const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1',slot=document.getElementById('adminResultSlotSelect')?.value||'',date=document.getElementById('adminResultDateInput')?.value||'',replaceId=document.getElementById('adminResultReplaceId')?.value||'';
             if(!date)return alert('Kripya date select karein!');
             if(!pendingPcResults.length)return alert('Kripya .pc result file choose karein!');
@@ -2258,6 +2340,7 @@
         function prepareReplaceResult(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;clearPendingResultPreview();document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';document.getElementById('adminResultDateInput').value=r.date||'';document.getElementById('adminResultReplaceId').value=r.type==='pc'?r.id:'';document.getElementById('adminResultImageReplaceId').value=r.type==='image'?r.id:'';alert(r.type==='image'?'REPLACE mode on hai. Nayi JPG/PNG photo choose karke pehle ADMIN VIEW/EDIT check karein, phir UPLOAD RESULT PHOTO dabayein.':'REPLACE mode on hai. Nayi .pc file choose karke pehle ADMIN VIEW/EDIT check karein, phir ADD / REPLACE .PC RESULT dabayein.');}
         
         function deleteResultItem(i){
+            if (!slRequireAdmin()) return;
             const c = getAppConfig();
             const r = c.resultsList?.[i];
             if(!r) return;
@@ -2577,6 +2660,544 @@
 
         function closeNoticeModal() {
             document.getElementById('noticeModal').classList.add('hidden');
+        }
+
+        // ==================================================================
+        // GET IDP / SLOT LIST  (Firebase Realtime Database)
+        // Secret code -> group (time + lobby) -> slot list + room id/pass
+        // ==================================================================
+        const RSK_SLOT_ROOMS_PATH = 'rsk_esports_slot_rooms';
+        const RSK_SLOT_LISTS_PATH = 'rsk_esports_slot_lists';
+
+        function slGroupKey(slot, lobby) {
+            return String(slot).replace(/[^A-Za-z0-9]+/g, '_') + '__' + String(lobby).replace(/[^A-Za-z0-9]+/g, '_');
+        }
+        function slNormCode(v) { return String(v || '').trim().toUpperCase(); }
+        function slValidCode(c) { return /^[A-Z0-9_-]{3,30}$/.test(c); }
+        function slFbOk() { return !!(rskFirebaseReady && rskFirebaseDb); }
+
+        function slFallbackCopy(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); if (cb) cb(); } catch (_) { alert('Copy nahi hua, text select karke manually copy karein.'); }
+            document.body.removeChild(ta);
+        }
+        function slCopyFrom(btn) {
+            const text = btn.getAttribute('data-copy') || '';
+            const done = () => { const old = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>COPIED'; setTimeout(() => { btn.innerHTML = old; }, 1500); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => slFallbackCopy(text, done));
+            else slFallbackCopy(text, done);
+        }
+
+        /* ---------------- VIEWER SIDE ---------------- */
+        let slViewerCode = '', slViewerRoom = null, slViewerLists = null;
+        let slViewerRoomRef = null, slViewerListRef = null, slViewerListKey = '';
+
+        function slShowStep(step) {
+            document.getElementById('slotCodeStep').classList.toggle('hidden', step !== 'code');
+            document.getElementById('slotGroupStep').classList.toggle('hidden', step !== 'group');
+        }
+        function slShowError(msg) {
+            const el = document.getElementById('slotCodeError');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.classList.toggle('hidden', !msg);
+        }
+        function slDetachViewer() {
+            if (slViewerRoomRef) slViewerRoomRef.off();
+            if (slViewerListRef) slViewerListRef.off();
+            slViewerRoomRef = null; slViewerListRef = null; slViewerListKey = '';
+            slViewerRoom = null; slViewerLists = null;
+        }
+        function openSlotListModal() {
+            slDetachViewer(); slViewerCode = '';
+            const inp = document.getElementById('slotSecretCodeInput');
+            if (inp) inp.value = '';
+            slShowError('');
+            slShowStep('code');
+            document.getElementById('slotListModal').classList.remove('hidden');
+        }
+        function closeSlotListModal() {
+            slDetachViewer(); slViewerCode = '';
+            document.getElementById('slotListModal').classList.add('hidden');
+        }
+        function slChangeCode() { openSlotListModal(); }
+
+        async function submitSlotSecretCode() {
+            const code = slNormCode(document.getElementById('slotSecretCodeInput')?.value);
+            const btn = document.getElementById('slotCodeSubmitBtn');
+            slShowError('');
+            if (!slValidCode(code)) return slShowError('Kripya sahi secret code daalein.');
+            if (!slFbOk()) return slShowError('Server se connect nahi ho paya. Internet check karke dobara try karein.');
+            btn.disabled = true; btn.textContent = 'CHECKING...';
+            try {
+                const snap = await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).once('value');
+                const room = snap.val();
+                if (!room || !room.slot || !room.lobby) { slShowError('Invalid secret code! Sahi code daalein.'); return; }
+                slViewerCode = code;
+                slAttachViewer(code);
+            } catch (err) {
+                console.error('Secret code check failed:', err);
+                slShowError('Code check nahi ho paya. Thodi der baad dobara try karein.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'SUBMIT CODE';
+            }
+        }
+
+        function slAttachViewer(code) {
+            slDetachViewer();
+            slViewerRoomRef = rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code);
+            slViewerRoomRef.on('value', snap => {
+                const r = snap.val();
+                if (!r || !r.slot || !r.lobby) {
+                    slDetachViewer(); slViewerCode = '';
+                    slShowStep('code'); slShowError('Ye secret code ab valid nahi hai. Naya code daalein.');
+                    return;
+                }
+                slViewerRoom = r;
+                const gk = slGroupKey(r.slot, r.lobby);
+                if (gk !== slViewerListKey) {
+                    if (slViewerListRef) slViewerListRef.off();
+                    slViewerListKey = gk; slViewerLists = null;
+                    slViewerListRef = rskFirebaseDb.ref(RSK_SLOT_LISTS_PATH + '/' + gk);
+                    slViewerListRef.on('value', s => { slViewerLists = s.val() || {}; renderSlotGroupView(); });
+                }
+                renderSlotGroupView();
+            }, err => { console.error('Slot room listener error:', err); slShowError('Data load nahi ho paya.'); });
+            slShowStep('group');
+            document.getElementById('slotGroupStep').innerHTML = '<p class="text-center text-amber-400 font-teko text-2xl animate-pulse py-6">LOADING...</p>';
+        }
+
+        function slLatestLists(obj) {
+            const arr = Object.values(obj || {}).filter(x => x && x.id);
+            if (!arr.length) return [];
+            const latest = arr.map(x => x.date || '').sort().reverse()[0];
+            return arr.filter(x => (x.date || '') === latest).sort((a, b) => String(a.id).localeCompare(String(b.id)));
+        }
+
+        function slRenderListCard(item) {
+            const head = `<div class="flex justify-between items-center mb-2 pb-2 border-b border-esports-lightPurple/40"><span class="text-xs font-rajdhani font-bold text-esports-yellow">DATE: ${esc(item.date)} • ${esc(item.lobby || '')}</span><span class="text-[10px] font-mono text-gray-400">${esc(item.slot || '')}</span></div>`;
+            if (item.type === 'image') {
+                return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3">${head}<img src="${esc(item.image)}" class="w-full rounded-lg object-contain" alt="Slot list"></div>`;
+            }
+            const rows = Array.isArray(item.rows) ? item.rows : Object.values(item.rows || {});
+            return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3">${head}
+                <div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40">
+                    <table class="w-full text-[12px] font-rajdhani font-bold border-collapse">
+                        <thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2 text-center w-16">SLOT</th><th class="px-2 py-2 text-left">TEAM NAME</th></tr></thead>
+                        <tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r, i) => `<tr><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${i + 1}</td><td class="px-2 py-2">${esc(r && r.teamName)}</td></tr>`).join('')}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }
+
+        function slInfoRow(label, value, icon) {
+            const has = String(value || '').trim() !== '';
+            return `<div class="bg-black/60 border border-esports-lightPurple rounded-lg px-2.5 py-1.5">
+                <p class="text-[10px] font-rajdhani font-bold text-gray-400 uppercase mb-0.5"><i class="fa-solid ${icon} text-esports-yellow mr-1"></i>${label}</p>
+                ${has ? `<div class="flex items-center justify-between gap-3">
+                    <span class="font-mono text-base font-bold text-amber-300 break-all" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
+                    <button type="button" data-copy="${esc(value)}" onclick="slCopyFrom(this)" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-rajdhani text-[11px] font-bold px-2 py-1 rounded-md"><i class="fa-regular fa-copy mr-1"></i>COPY</button>
+                </div>` : `<p class="text-amber-400 font-teko text-base tracking-wider animate-pulse">COMING SOON...</p>`}
+            </div>`;
+        }
+
+        function slRoomMatches(r) {
+            const m = (r && r.matches) || {}, out = [];
+            for (let n = 1; n <= 3; n++) {
+                const x = m['m' + n];
+                if (x) out.push({ roomId: String(x.roomId || ''), roomPass: String(x.roomPass || '') });
+                else if (n === 1 && r) out.push({ roomId: String(r.roomId || ''), roomPass: String(r.roomPass || '') }); // purana data = Match 1
+                else out.push({ roomId: '', roomPass: '' });
+            }
+            return out;
+        }
+
+        function slMatchBlock(n, m) {
+            return `<div class="border border-esports-yellow/40 rounded-xl p-2 space-y-1.5 bg-esports-purple/20">
+                <p class="font-teko text-lg font-bold leading-none"><span class="bg-esports-yellow text-black px-1.5 rounded">MATCH ${n}</span></p>
+                ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
+                ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
+            </div>`;
+        }
+
+        function renderSlotGroupView() {
+            const box = document.getElementById('slotGroupStep'), r = slViewerRoom;
+            if (!box || !r) return;
+            const lists = slViewerLists === null ? null : slLatestLists(slViewerLists);
+            let listHtml;
+            if (lists === null) listHtml = '<p class="text-center text-amber-400 font-teko text-2xl animate-pulse py-4">LOADING...</p>';
+            else if (!lists.length) listHtml = '<p class="text-center text-amber-400 font-teko text-3xl tracking-widest animate-pulse py-4"><i class="fa-solid fa-hourglass-half mr-2"></i>SLOT LIST COMING SOON...</p>';
+            else listHtml = lists.map(slRenderListCard).join('');
+            box.innerHTML = `
+                <div class="bg-black/70 border-2 border-esports-yellow rounded-xl p-4 text-center">
+                    <p class="text-[10px] font-rajdhani font-bold text-gray-400 uppercase tracking-widest mb-1">GROUP NAME</p>
+                    <p class="font-teko text-4xl font-bold text-esports-yellow leading-none">${esc(r.slot)}</p>
+                    <p class="font-teko text-3xl font-bold text-white leading-none mt-1">${esc(r.lobby)}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-2"><i class="fa-solid fa-clipboard-list mr-1"></i>SLOT LIST</p>
+                    <div class="space-y-3 overflow-y-auto" style="max-height:45vh">${listHtml}</div>
+                </div>
+                ${slRoomMatches(r).map((m, i) => slMatchBlock(i + 1, m)).join('')}
+                <div class="flex gap-3">
+                    <button type="button" onclick="slChangeCode()" class="w-full bg-esports-purple border border-esports-lightPurple text-white font-rajdhani font-bold py-2 rounded-xl">CHANGE CODE</button>
+                    <button type="button" onclick="closeSlotListModal()" class="w-full bg-esports-yellow hover:bg-amber-400 text-black font-teko text-xl font-bold py-2 rounded-xl">CLOSE</button>
+                </div>`;
+        }
+
+        /* ---------------- ADMIN FIREBASE AUTH ---------------- */
+        let slAdminPanelOpen = false;
+        let slOpenDashboardAfterLogin = false;
+
+        function slAuthOk() {
+            try { return !!(window.firebase && firebase.auth && firebase.auth().currentUser); } catch (_) { return false; }
+        }
+        function slInitAdminAuth() {
+            try {
+                firebase.auth().onAuthStateChanged(u => { if (u && slAdminPanelOpen) startAdminSlotListeners(); });
+            } catch (e) { console.error('Firebase Auth init failed:', e); }
+        }
+        window.addEventListener('load', slInitAdminAuth);
+
+        function slShowAdminAuthModal() {
+            const inp = document.getElementById('adminFbPassInput'), err = document.getElementById('adminFbAuthError');
+            if (inp) inp.value = '';
+            if (err) { err.textContent = ''; err.classList.add('hidden'); }
+            document.getElementById('adminFbAuthModal').classList.remove('hidden');
+        }
+        function closeAdminFbAuthModal() { slOpenDashboardAfterLogin = false; document.getElementById('adminFbAuthModal').classList.add('hidden'); }
+        function slRequireAdmin() {
+            if (slAuthOk()) return true;
+            slShowAdminAuthModal();
+            return false;
+        }
+
+        async function submitAdminFbAuth() {
+            const email = (document.getElementById('adminFbEmailInput').value || '').trim();
+            const pw = document.getElementById('adminFbPassInput').value;
+            const err = document.getElementById('adminFbAuthError'), btn = document.getElementById('adminFbAuthBtn');
+            const fail = m => { err.textContent = m; err.classList.remove('hidden'); };
+            err.classList.add('hidden');
+            if (!email || !pw) return fail('Email aur password dono daalein.');
+            if (!(window.firebase && firebase.auth)) return fail('Login load nahi hua. Page refresh karein.');
+            btn.disabled = true; btn.textContent = 'CHECKING...';
+            try {
+                await firebase.auth().signInWithEmailAndPassword(email, pw);
+                const openDash = slOpenDashboardAfterLogin;
+                closeAdminFbAuthModal();
+                adminSlotErr = { rooms: '', lists: '' };
+                adminSlotListening = false;
+                if (openDash) openAdminDashboard(); else startAdminSlotListeners();
+            } catch (e) {
+                console.error(e);
+                fail(/wrong-password|invalid-credential|invalid-login/i.test(e.code || '') ? 'Email ya password galat hai.' : 'Login nahi ho paya. Dobara try karein.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'LOGIN';
+            }
+        }
+
+        function adminSlotAuthThenStart() {
+            slAdminPanelOpen = true;
+            if (slAuthOk()) { startAdminSlotListeners(); return; }
+            adminSlotErr.rooms = adminSlotErr.lists = 'Firebase admin login baaki hai. Admin panel dobara kholein ya kuch save karne par password poochha jayega.';
+            renderAdminSlotManagers();
+            slShowAdminAuthModal();
+        }
+
+        /* ---------------- ADMIN SIDE ---------------- */
+        let adminSlotRooms = {}, adminSlotLists = {}, adminSlotListening = false;
+        let slPendingPc = [], slPendingImg = [];
+
+        let adminSlotErr = { rooms: '', lists: '' };
+        function slErrText(e) { return (e && (e.code || e.message)) || 'unknown error'; }
+
+        function slApplyLocal(kind, updates) {
+            Object.keys(updates).forEach(k => {
+                if (kind === 'rooms') {
+                    if (updates[k] === null) delete adminSlotRooms[k]; else adminSlotRooms[k] = updates[k];
+                } else {
+                    const parts = k.split('/'), g = parts[0], id = parts[1];
+                    if (updates[k] === null) { if (adminSlotLists[g]) delete adminSlotLists[g][id]; }
+                    else { (adminSlotLists[g] = adminSlotLists[g] || {})[id] = updates[k]; }
+                }
+            });
+            renderAdminSlotManagers();
+        }
+
+        function startAdminSlotListeners() {
+            const d = document.getElementById('adminSlDateInput');
+            if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
+            if (!slFbOk()) {
+                adminSlotErr.rooms = adminSlotErr.lists = 'Firebase connect nahi hua. Internet check karke page refresh karein.';
+                renderAdminSlotManagers();
+                return;
+            }
+            if (adminSlotListening) { renderAdminSlotManagers(); return; }
+            adminSlotListening = true;
+            const roomsRef = rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH), listsRef = rskFirebaseDb.ref(RSK_SLOT_LISTS_PATH);
+            roomsRef.off(); listsRef.off();
+            const failed = key => e => {
+                console.error('Admin ' + key + ' listener error:', e);
+                adminSlotErr[key] = 'Data load nahi ho paya (' + slErrText(e) + '). Firebase Rules me is path ka ".read": true allow karein.';
+                adminSlotListening = false;
+                renderAdminSlotManagers();
+            };
+            roomsRef.on('value', s => { adminSlotErr.rooms = ''; adminSlotRooms = s.val() || {}; renderAdminSlotManagers(); slFillRoomForm(true); }, failed('rooms'));
+            listsRef.on('value', s => { adminSlotErr.lists = ''; adminSlotLists = s.val() || {}; renderAdminSlotManagers(); }, failed('lists'));
+            renderAdminSlotManagers();
+        }
+
+        function slAllLists() {
+            const out = [];
+            Object.values(adminSlotLists || {}).forEach(g => { if (g && typeof g === 'object') Object.values(g).forEach(it => { if (it && it.id) out.push(it); }); });
+            return out.sort((a, b) => String(a.slot).localeCompare(String(b.slot)) || String(a.lobby).localeCompare(String(b.lobby)) || String(b.date).localeCompare(String(a.date)));
+        }
+
+        function slFillRoomForm(onlyIfEmpty) {
+            const lobby = document.getElementById('adminSlRoomLobby')?.value, slot = document.getElementById('adminSlRoomSlot')?.value;
+            const codeEl = document.getElementById('adminSlRoomCode');
+            if (!codeEl) return;
+            if (onlyIfEmpty === true && (codeEl.value || document.getElementById('adminSlRoomId').value || document.getElementById('adminSlRoomPass').value)) return;
+            const f = Object.values(adminSlotRooms || {}).find(r => r && r.lobby === lobby && r.slot === slot);
+            const mn = Number(document.getElementById('adminSlRoomMatch')?.value) || 1;
+            const m = f ? slRoomMatches(f)[mn - 1] : { roomId: '', roomPass: '' };
+            codeEl.value = f?.code || '';
+            document.getElementById('adminSlRoomId').value = m.roomId;
+            document.getElementById('adminSlRoomPass').value = m.roomPass;
+        }
+
+        async function saveSlotRoomDetails() {
+            if (!slRequireAdmin()) return;
+            const lobby = document.getElementById('adminSlRoomLobby').value, slot = document.getElementById('adminSlRoomSlot').value;
+            const match = Number(document.getElementById('adminSlRoomMatch').value) || 1;
+            const code = slNormCode(document.getElementById('adminSlRoomCode').value);
+            const roomId = document.getElementById('adminSlRoomId').value.trim(), roomPass = document.getElementById('adminSlRoomPass').value.trim();
+            if (!slValidCode(code)) return alert('Secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
+            if (!slFbOk()) return alert('Realtime database connect nahi hai. Internet check karein.');
+            const owner = adminSlotRooms[code];
+            if (owner && (owner.lobby !== lobby || owner.slot !== slot)) return alert(`Ye secret code pehle se ${owner.slot} • ${owner.lobby} ke liye use ho raha hai. Har lobby ka code alag rakhein.`);
+            const oldEntry = Object.values(adminSlotRooms).find(r => r && r.lobby === lobby && r.slot === slot && r.code !== code);
+            const now = Date.now(), updates = {};
+            let merged;
+            if (oldEntry) {
+                // code badla gaya: purane code ke saare matches naye code par shift karo
+                const ms = slRoomMatches(oldEntry); ms[match - 1] = { roomId, roomPass };
+                const matches = {}; ms.forEach((x, i) => { matches['m' + (i + 1)] = x; });
+                merged = { code, lobby, slot, matches, updatedAt: now };
+                updates[code] = merged; updates[oldEntry.code] = null;
+            } else {
+                const cur = adminSlotRooms[code] || {};
+                updates[code + '/code'] = code; updates[code + '/lobby'] = lobby; updates[code + '/slot'] = slot; updates[code + '/updatedAt'] = now;
+                updates[code + '/matches/m' + match] = { roomId, roomPass };
+                merged = { ...cur, code, lobby, slot, updatedAt: now, matches: { ...(cur.matches || {}), ['m' + match]: { roomId, roomPass } } };
+            }
+            try {
+                await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).update(updates);
+                adminSlotRooms[code] = merged;
+                if (oldEntry) delete adminSlotRooms[oldEntry.code];
+                renderAdminSlotManagers();
+                alert(`${slot} • ${lobby} • MATCH ${match} ka secret code / room details save ho gaye.`);
+            } catch (err) { console.error(err); alert('Save nahi ho paya: ' + slErrText(err) + '\nFirebase Rules / internet check karein.'); }
+        }
+
+        function editSlotRoom(code) {
+            const r = adminSlotRooms[code]; if (!r) return;
+            document.getElementById('adminSlRoomLobby').value = r.lobby;
+            document.getElementById('adminSlRoomSlot').value = r.slot;
+            document.getElementById('adminSlRoomMatch').value = '1';
+            document.getElementById('adminSlRoomCode').value = r.code || code;
+            document.getElementById('adminSlRoomId').value = slRoomMatches(r)[0].roomId;
+            document.getElementById('adminSlRoomPass').value = slRoomMatches(r)[0].roomPass;
+            document.getElementById('adminSlRoomCode').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function updateSlotRoomIdPass(code, n) {
+            if (!slRequireAdmin()) return;
+            const r = adminSlotRooms[code]; if (!r) return alert('Ye group ab available nahi hai.');
+            const roomId = (document.getElementById(`slEditRoomId_${code}_${n}`)?.value || '').trim();
+            const roomPass = (document.getElementById(`slEditRoomPass_${code}_${n}`)?.value || '').trim();
+            if (!slFbOk()) return alert('Realtime database connect nahi hai. Internet check karein.');
+            try {
+                await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).update({ ['matches/m' + n]: { roomId, roomPass }, updatedAt: Date.now() });
+                adminSlotRooms[code] = { ...r, updatedAt: Date.now(), matches: { ...(r.matches || {}), ['m' + n]: { roomId, roomPass } } };
+                renderAdminSlotManagers();
+                alert(`${r.slot} • ${r.lobby} • MATCH ${n} ka Room ID / Password update ho gaya. Viewer ko naya turant dikhega.`);
+            } catch (err) { console.error(err); alert('Update nahi ho paya: ' + slErrText(err) + '\nFirebase Rules / internet check karein.'); }
+        }
+
+        function deleteSlotRoom(code) {
+            if (!slRequireAdmin()) return;
+            const r = adminSlotRooms[code]; if (!r) return;
+            if (!confirm(`${r.slot} • ${r.lobby} ka secret code aur room ID/pass DELETE karna chahte hain?`)) return;
+            rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).remove().then(() => slApplyLocal('rooms', { [code]: null })).catch(e => { console.error(e); alert('Delete nahi ho paya: ' + slErrText(e)); });
+        }
+
+        function renderAdminSlotManagers() {
+            const rb = document.getElementById('adminSlRoomsManager'), lb = document.getElementById('adminSlListsManager');
+            if (rb) {
+                const rooms = Object.values(adminSlotRooms || {}).filter(r => r && r.code).sort((a, b) => String(a.slot).localeCompare(String(b.slot)) || String(a.lobby).localeCompare(String(b.lobby)));
+                const errHtml = adminSlotErr.rooms ? `<p class="text-xs font-bold text-red-400 mb-2">${esc(adminSlotErr.rooms)}</p>` : '';
+                rb.innerHTML = errHtml + (rooms.length ? rooms.map(r => `<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0"><p class="text-xs font-bold text-esports-yellow">${esc(r.slot)} • ${esc(r.lobby)}</p>
+                    <p class="text-[10px] text-gray-300">CODE: <span class="font-mono text-amber-300">${esc(r.code)}</span></p></div>
+                    <div class="flex gap-2 shrink-0"><button type="button" onclick="editSlotRoom('${esc(r.code)}')" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT CODE</button><button type="button" onclick="deleteSlotRoom('${esc(r.code)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>
+                    ${slRoomMatches(r).map((m, i) => `<div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                        <span class="font-teko text-xl text-esports-yellow leading-none">MATCH ${i + 1}</span>
+                        <input type="text" id="slEditRoomId_${esc(r.code)}_${i + 1}" value="${esc(m.roomId)}" placeholder="Room ID" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
+                        <input type="text" id="slEditRoomPass_${esc(r.code)}_${i + 1}" value="${esc(m.roomPass)}" placeholder="Password" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
+                        <button type="button" onclick="updateSlotRoomIdPass('${esc(r.code)}', ${i + 1})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg">UPDATE</button>
+                    </div>`).join('')}
+                    </div>`).join('')
+                    : (adminSlotErr.rooms ? '' : '<p class="text-xs text-gray-400">Abhi tak koi secret code set nahi hua hai.</p>'));
+            }
+            if (lb) {
+                const items = slAllLists();
+                const lerr = adminSlotErr.lists ? `<p class="text-xs font-bold text-red-400 mb-2">${esc(adminSlotErr.lists)}</p>` : '';
+                lb.innerHTML = lerr + (items.length ? items.map(r => `<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3">
+                    <div class="min-w-0"><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby)} • ${esc(r.slot)}</p>
+                    <p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type === 'pc' ? '.PC SLOT LIST' : 'PHOTO SLOT LIST'}</p>
+                    <p class="text-[10px] text-gray-400 truncate">${esc(r.fileName || '')}</p></div>
+                    <div class="flex gap-2 shrink-0">${r.type === 'pc' ? `<button type="button" onclick="editSlotList('${esc(r.id)}')" class="bg-sky-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT</button>` : ''}<button type="button" onclick="prepareReplaceSlotList('${esc(r.id)}')" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button><button type="button" onclick="deleteSlotList('${esc(r.id)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('')
+                    : (adminSlotErr.lists ? '' : '<p class="text-xs text-gray-400">Abhi tak koi slot list upload nahi hui hai.</p>'));
+            }
+        }
+
+        function parseSlotPcFile(text) {
+            const i = text.indexOf('{');
+            if (i < 0) throw Error('Invalid .pc file.');
+            const d = JSON.parse(text.slice(i)), names = [];
+            const add = n => { n = String(n || '').trim(); if (n && !names.includes(n)) names.push(n); };
+            if (Array.isArray(d.teamEntities)) d.teamEntities.forEach(x => add(x && (x.name || x.teamName)));
+            if (!names.length && Array.isArray(d.matchData)) d.matchData.forEach(x => add(x && x.teamName));
+            if (!names.length) throw Error('Is .pc file me team data nahi mila.');
+            return { rows: names.map(n => ({ teamName: n })), tournamentName: d?.tournament?.name || d?.eventDetails?.primaryKey || '', sourceEvent: d?.eventDetails?.eventName || '' };
+        }
+
+        function slCompressImage(dataUrl, ok, fail) {
+            const img = new Image();
+            img.onload = () => {
+                const sc = Math.min(1, 1400 / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+                const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+                ok(c.toDataURL('image/jpeg', 0.8));
+            };
+            img.onerror = fail; img.src = dataUrl;
+        }
+
+        function stageSlotFiles(type) {
+            const fi = document.getElementById(type === 'pc' ? 'adminSlPcInput' : 'adminSlImageInput'), files = Array.from(fi?.files || []);
+            if (!files.length) return;
+            let done = 0; const errors = [];
+            const finish = () => { done++; if (done === files.length) { fi.value = ''; slRenderPending(); if (errors.length) alert('Some files failed:\n' + errors.join('\n')); } };
+            files.forEach(file => {
+                const rd = new FileReader();
+                rd.onload = e => {
+                    if (type === 'pc') {
+                        try { const p = parseSlotPcFile(e.target.result); slPendingPc.push({ fileName: file.name, rows: p.rows, tournamentName: p.tournamentName, sourceEvent: p.sourceEvent }); }
+                        catch (err) { errors.push(file.name + ': ' + err.message); }
+                        finish();
+                    } else {
+                        slCompressImage(e.target.result, img => { slPendingImg.push({ fileName: file.name, image: img }); finish(); }, () => { errors.push(file.name + ': image read nahi hui'); finish(); });
+                    }
+                };
+                if (type === 'pc') rd.readAsText(file); else rd.readAsDataURL(file);
+            });
+        }
+
+        function slClearPending() {
+            slPendingPc = []; slPendingImg = [];
+            document.getElementById('adminSlPreviewPanel')?.classList.add('hidden');
+            ['adminSlPcInput', 'adminSlImageInput'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        }
+        function slRemovePending(type, i) { (type === 'pc' ? slPendingPc : slPendingImg).splice(i, 1); slRenderPending(); }
+        function slAddPendingTeam(pi) { const r = slPendingPc[pi]; if (!r) return; r.rows.push({ teamName: 'NEW TEAM ' + (r.rows.length + 1) }); slRenderPending(); }
+        function slRemovePendingTeam(pi, ri) { slPendingPc[pi]?.rows.splice(ri, 1); slRenderPending(); }
+        function slEditPendingTeam(pi, ri, v) { const r = slPendingPc[pi]?.rows?.[ri]; if (r) r.teamName = v; }
+
+        function slRenderPending() {
+            const panel = document.getElementById('adminSlPreviewPanel'), box = document.getElementById('adminSlPreviewList');
+            if (!panel || !box) return;
+            if (!slPendingPc.length && !slPendingImg.length) { panel.classList.add('hidden'); box.innerHTML = ''; return; }
+            panel.classList.remove('hidden');
+            let html = '';
+            slPendingPc.forEach((res, pi) => {
+                html += `<div class="bg-black/70 border border-esports-lightPurple rounded-xl p-3">
+                    <div class="flex items-center justify-between gap-2 mb-2"><div><p class="text-xs font-bold text-esports-yellow">.PC SLOT LIST PREVIEW</p><p class="text-[10px] text-gray-400 truncate">${esc(res.fileName)}</p></div>
+                    <div class="flex gap-2"><button type="button" onclick="slAddPendingTeam(${pi})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-user-plus mr-1"></i>ADD NEW TEAM</button><button type="button" onclick="slRemovePending('pc',${pi})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE</button></div></div>
+                    <div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40"><table class="w-full min-w-[360px] text-[11px] font-rajdhani font-bold border-collapse">
+                    <thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2">SLOT</th><th class="px-2 py-2 text-left">TEAM NAME</th><th class="px-2 py-2"></th></tr></thead>
+                    <tbody class="divide-y divide-esports-lightPurple/30">${res.rows.map((r, ri) => `<tr><td class="px-2 py-2 text-center text-esports-yellow">${ri + 1}</td><td class="px-2 py-1"><input value="${esc(r.teamName)}" onchange="slEditPendingTeam(${pi},${ri},this.value)" class="w-full min-w-[150px] bg-black/60 border border-esports-lightPurple rounded px-2 py-1 text-white"></td><td class="px-2 py-1 text-center"><button type="button" onclick="slRemovePendingTeam(${pi},${ri})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+            });
+            slPendingImg.forEach((res, ii) => {
+                html += `<div class="bg-black/70 border border-esports-lightPurple rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-2"><div><p class="text-xs font-bold text-esports-yellow">JPG / PNG PREVIEW</p><p class="text-[10px] text-gray-400 truncate">${esc(res.fileName)}</p></div><button type="button" onclick="slRemovePending('image',${ii})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE</button></div><img src="${res.image}" class="w-full max-h-[55vh] object-contain rounded-lg border border-esports-lightPurple/50 bg-black" alt="Slot list preview"></div>`;
+            });
+            box.innerHTML = html;
+        }
+
+        async function saveSlotList(type) {
+            if (!slRequireAdmin()) return;
+            const lobby = document.getElementById('adminSlLobby').value, slot = document.getElementById('adminSlSlot').value;
+            const date = document.getElementById('adminSlDateInput').value, replaceId = document.getElementById('adminSlReplaceId').value;
+            const pending = type === 'pc' ? slPendingPc : slPendingImg;
+            if (!date) return alert('Kripya date select karein!');
+            if (!pending.length) return alert(type === 'pc' ? 'Kripya .pc slot list file choose karein!' : 'Kripya JPG/PNG slot list photo choose karein!');
+            if (!slFbOk()) return alert('Realtime database connect nahi hai. Internet check karein.');
+            const single = !!replaceId && pending.length === 1, gk = slGroupKey(slot, lobby), updates = {};
+            if (single) { const old = slAllLists().find(x => x.id === replaceId); if (old) updates[slGroupKey(old.slot, old.lobby) + '/' + replaceId] = null; }
+            for (let i = 0; i < pending.length; i++) {
+                const res = pending[i], id = single ? replaceId : 'sl_' + type + '_' + Date.now() + '_' + i;
+                if (type === 'pc') {
+                    const rows = (res.rows || []).map(r => ({ teamName: String(r.teamName || '').trim() })).filter(r => r.teamName);
+                    if (!rows.length) return alert(res.fileName + ': koi team nahi hai.');
+                    updates[gk + '/' + id] = { id, type: 'pc', lobby, slot, date, rows, tournamentName: res.tournamentName || '', sourceEvent: res.sourceEvent || '', fileName: res.fileName || '' };
+                } else {
+                    updates[gk + '/' + id] = { id, type: 'image', lobby, slot, date, image: res.image, fileName: res.fileName || '' };
+                }
+            }
+            try {
+                await rskFirebaseDb.ref(RSK_SLOT_LISTS_PATH).update(updates);
+                slApplyLocal('lists', updates);
+                const n = pending.length;
+                document.getElementById('adminSlReplaceId').value = '';
+                slClearPending();
+                alert(`${n} slot list${n > 1 ? 's' : ''} saved successfully.`);
+            } catch (err) { console.error(err); alert('Save nahi ho paya: ' + slErrText(err) + '\nFirebase Rules / internet check karein.'); }
+        }
+
+        function editSlotList(id) {
+            const r = slAllLists().find(x => x.id === id); if (!r || r.type !== 'pc') return;
+            slClearPending();
+            const rows = (Array.isArray(r.rows) ? r.rows : Object.values(r.rows || {})).map(x => ({ teamName: String((x && x.teamName) || '') }));
+            slPendingPc = [{ fileName: r.fileName || '', rows, tournamentName: r.tournamentName || '', sourceEvent: r.sourceEvent || '' }];
+            document.getElementById('adminSlLobby').value = r.lobby;
+            document.getElementById('adminSlSlot').value = r.slot;
+            document.getElementById('adminSlDateInput').value = r.date || '';
+            document.getElementById('adminSlReplaceId').value = id;
+            slRenderPending();
+            document.getElementById('adminSlPreviewPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            alert('EDIT mode on hai. Neeche team names badlein, phir "ADD / REPLACE .PC SLOT LIST" dabayein.');
+        }
+
+        function prepareReplaceSlotList(id) {
+            const r = slAllLists().find(x => x.id === id); if (!r) return;
+            slClearPending();
+            document.getElementById('adminSlLobby').value = r.lobby;
+            document.getElementById('adminSlSlot').value = r.slot;
+            document.getElementById('adminSlDateInput').value = r.date || '';
+            document.getElementById('adminSlReplaceId').value = id;
+            alert('REPLACE mode on hai. Nayi .pc file ya photo choose karke pehle ADMIN VIEW/EDIT check karein, phir save button dabayein.');
+        }
+
+        function deleteSlotList(id) {
+            if (!slRequireAdmin()) return;
+            const r = slAllLists().find(x => x.id === id); if (!r) return;
+            if (!confirm(`${r.lobby} | ${r.slot} | ${r.date} ki slot list DELETE karna chahte hain? Delete karne ke baad ye kisi ko nahi dikhegi.`)) return;
+            const gk = slGroupKey(r.slot, r.lobby);
+            rskFirebaseDb.ref(RSK_SLOT_LISTS_PATH + '/' + gk + '/' + id).remove().then(() => slApplyLocal('lists', { [gk + '/' + id]: null })).catch(e => { console.error(e); alert('Delete nahi ho paya: ' + slErrText(e)); });
         }
 
         // Initialize Page
