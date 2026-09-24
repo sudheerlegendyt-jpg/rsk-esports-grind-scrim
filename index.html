@@ -94,16 +94,17 @@
 
     <!-- SMALL MAIN-SCREEN NOTICE POPUP -->
     <div id="mainNoticePopup"
-         class="hidden fixed bottom-4 right-4 z-[45] cursor-pointer"
+         class="hidden fixed bottom-4 right-4 z-[45] w-[62px] h-[62px] cursor-pointer"
          onclick="openNoticeFromPopup()">
-        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-full shadow-2xl p-2 flex items-center gap-2">
-            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-red-600/90 to-esports-accent/90">
-                <i class="fa-solid fa-bullhorn text-esports-yellow text-lg animate-bounce"></i>
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-full shadow-2xl overflow-hidden w-full h-full flex items-center justify-center">
+            <div class="flex items-center justify-center w-full h-full bg-gradient-to-r from-red-600/90 to-esports-accent/90">
+                <i class="fa-solid fa-bullhorn text-esports-yellow text-xl animate-bounce"></i>
             </div>
-            <div class="pr-3">
-                <div id="mainNoticePopupText" class="text-[11px] text-white/90 font-rajdhani font-bold max-w-[140px] truncate">Click to view update</div>
+                    <div class="text-[11px] text-white/80 font-rajdhani font-bold">Click to view the latest update</div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-white text-xs"></i>
             </div>
-            <i class="fa-solid fa-chevron-right text-white text-xs pr-1"></i>
+            
         </div>
     </div>
 
@@ -265,6 +266,7 @@
                 SELECT YOUR <span class="text-esports-yellow">PRIZE POOL SLOTS</span>
             </h2>
             <p class="text-gray-300 text-sm font-rajdhani">Select a pool tier below to register your Squad</p>
+
         </div>
 
         <div id="prizePoolsGrid" class="grid grid-cols-2 gap-3 md:gap-4">
@@ -345,4 +347,4 @@
             </button>
 
             <i class="fa-solid fa-trophy text-4xl text-esports-yellow mb-2"></i>
-            <h3 class="font-teko text-3xl font-
+            <h3 class="font-tek
