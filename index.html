@@ -100,11 +100,6 @@
             <div class="flex items-center justify-center w-full h-full bg-gradient-to-r from-red-600/90 to-esports-accent/90">
                 <i class="fa-solid fa-bullhorn text-esports-yellow text-xl animate-bounce"></i>
             </div>
-                    <div class="text-[11px] text-white/80 font-rajdhani font-bold">Click to view the latest update</div>
-                </div>
-                <i class="fa-solid fa-chevron-right text-white text-xs"></i>
-            </div>
-            
         </div>
     </div>
 
@@ -179,7 +174,6 @@
                 </div>
 
                 <div class="space-y-4 font-rajdhani font-bold">
-
                     <button onclick="openNoticeModal(); toggleSideMenu();" class="w-full bg-black/50 hover:bg-esports-lightPurple border border-esports-lightPurple text-white p-3 rounded-xl flex items-center justify-between transition-all">
                         <span class="flex items-center gap-3">
                             <i class="fa-solid fa-bullhorn text-esports-yellow"></i>
@@ -266,7 +260,6 @@
                 SELECT YOUR <span class="text-esports-yellow">PRIZE POOL SLOTS</span>
             </h2>
             <p class="text-gray-300 text-sm font-rajdhani">Select a pool tier below to register your Squad</p>
-
         </div>
 
         <div id="prizePoolsGrid" class="grid grid-cols-2 gap-3 md:gap-4">
@@ -577,7 +570,7 @@
         </div>
     </div>
 
-    <!-- MODAL: IMAGE PROOF PREVIEWER (FOR ADMIN VIEW PROOF FIX) -->
+    <!-- MODAL: IMAGE PROOF PREVIEWER -->
     <div id="proofViewerModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-4 shadow-2xl relative text-center">
             <button onclick="closeProofViewerModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl">
@@ -823,7 +816,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">UPI ID Text (Optional)</label>
-                        <input type="text" id="adminUpiIdInput" placeholder="7991624317@upi" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <input type="text" id="adminUpiIdInput" placeholder="7317601274@upi" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
                     </div>
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Upload Custom QR Code Image (Photo)</label>
@@ -843,7 +836,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-rajdhani">
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Contact Us - WhatsApp Number 1</label>
-                        <input type="text" id="admin_contact_whatsapp_1" placeholder="7991624317" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_contact_whatsapp_1" placeholder="7317601274" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Contact Us - WhatsApp Number 2</label>
@@ -851,23 +844,23 @@
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Match Result - WhatsApp Number</label>
-                        <input type="text" id="admin_result_whatsapp" placeholder="7991624317" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_result_whatsapp" placeholder="7317601274" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Booking - WhatsApp Number</label>
-                        <input type="text" id="admin_booking_whatsapp" placeholder="7991624317" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_booking_whatsapp" placeholder="7317601274" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Prize Claim - WhatsApp Number</label>
-                        <input type="text" id="admin_prize_whatsapp" placeholder="7991624317" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_prize_whatsapp" placeholder="7317601274" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Instagram Profile URL</label>
-                        <input type="text" id="admin_social_instagram" placeholder="https://instagram.com/..." class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_social_instagram" placeholder="https://www.instagram.com/rsk___esports?igsh=MTEzeXQzOGh4cjF0" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">YouTube Channel URL</label>
-                        <input type="text" id="admin_social_youtube" placeholder="https://youtube.com/..." class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
+                        <input type="text" id="admin_social_youtube" placeholder="https://www.youtube.com/@RSK_ESPORTS_79" class="w-full bg-black/50 border border-esports-lightPurple p-2 text-white rounded-lg">
                     </div>
                     <div>
                         <label class="block text-gray-300 font-bold mb-1">Discord Server Link</label>
@@ -908,22 +901,17 @@
         </div>
     </div>
 
-    <!-- Firebase Realtime Database (used ONLY for .PC match results) -->
+    <!-- Firebase Realtime Database (used for .PC match results synchronization) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
     <!-- LOGIC JS -->
     <script>
-        // TELEGRAM BOT CONFIGURATION
-        // Telegram bot token from @BotFather.
-        // IMPORTANT: This token is exposed in the current file; regenerate it in BotFather before making the site public.
         const TELEGRAM_BOT_TOKEN = "8794564056:AAF6_AxY64Hubhn7iyEoCI4ffdqctdpLXfE";
         const TELEGRAM_CHAT_ID = "8714727454";
 
         let telegramLastError = "";
 
-        // FIREBASE: ONLY .PC MATCH RESULTS ARE SYNCHRONIZED.
-        // JPG/PNG results and all other website data remain local and unchanged.
         const firebaseConfig = {
             apiKey: "AIzaSyAhURW1Dq4_V3Pkgu1WBArq0-_hd29UTgo",
             authDomain: "rsk-esports-ec1f0.firebaseapp.com",
@@ -949,12 +937,16 @@
                 // Real-time listener: updates ONLY .PC entries in local resultsList.
                 rskFirebaseDb.ref(RSK_PC_RESULTS_PATH).on('value', snapshot => {
                     const cloud = snapshot.val();
-                    if (!cloud || typeof cloud !== 'object') return;
-
                     const config = getAppConfig();
                     const localNonPc = (config.resultsList || []).filter(r => r.type !== 'pc');
-                    const cloudPc = Object.values(cloud).filter(r => r && r.type === 'pc');
-                    config.resultsList = localNonPc.concat(cloudPc);
+                    
+                    if (!cloud || typeof cloud !== 'object') {
+                        // All cloud .PC entries removed
+                        config.resultsList = localNonPc;
+                    } else {
+                        const cloudPc = Object.values(cloud).filter(r => r && r.type === 'pc');
+                        config.resultsList = localNonPc.concat(cloudPc);
+                    }
                     localStorage.setItem('rsk_app_config', JSON.stringify(config));
                     renderAdminResultsManager();
                     try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
@@ -1010,27 +1002,8 @@
             return data;
         }
 
-        async function testTelegramConnection(showAlert = true) {
-            try {
-                const data = await telegramRequest("getMe");
-                telegramLastError = "";
-                console.log("Telegram Bot Connected:", data.result.username);
-                if (showAlert) {
-                    alert(`✅ Telegram Bot Connected!\n@${data.result.username}`);
-                }
-                return true;
-            } catch (err) {
-                telegramLastError = err.message || "Unknown Telegram error";
-                console.error("Telegram Connection Error:", telegramLastError);
-                if (showAlert) {
-                    alert(`❌ Telegram Bot Error:\n${telegramLastError}`);
-                }
-                return false;
-            }
-        }
-
         const DEFAULT_CONFIG = {
-            upiId: "7991624317@upi",
+            upiId: "7317601274@upi",
             customQrImage: "",
             adminPass: "9793694317",
             noticeText: "",
@@ -1038,14 +1011,14 @@
             showTopBannerNotice: false,
             hasUnreadAdminAlert: false,
             socialLinks: {
-                whatsapp: "7991624317",
-                contactWhatsapp1: "7991624317",
+                whatsapp: "7317601274",
+                contactWhatsapp1: "7317601274",
                 contactWhatsapp2: "",
-                resultWhatsapp: "7991624317",
-                bookingWhatsapp: "7991624317",
-                prizeWhatsapp: "7991624317",
-                instagram: "https://instagram.com/rskesports",
-                youtube: "https://youtube.com",
+                resultWhatsapp: "7317601274",
+                bookingWhatsapp: "7317601274",
+                prizeWhatsapp: "7317601274",
+                instagram: "https://www.instagram.com/rsk___esports?igsh=MTEzeXQzOGh4cjF0",
+                youtube: "https://www.youtube.com/@RSK_ESPORTS_79",
                 discord: "https://discord.gg"
             },
             topBannerText: "ENTRY - 40 / 50 / 60 / 70 RS ONLY",
@@ -1120,7 +1093,6 @@
 
         let currentTempReg = {};
 
-        // WEB NOTIFICATION HELPER FUNCTIONS
         function requestNotificationPermission() {
             if ("Notification" in window) {
                 if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -1148,7 +1120,32 @@
             if(!parsed.slotCommunityLinks) parsed.slotCommunityLinks = DEFAULT_CONFIG.slotCommunityLinks;
             if(typeof parsed.topBannerText !== 'string') parsed.topBannerText = DEFAULT_CONFIG.topBannerText;
             if(!Array.isArray(parsed.fullDaySchedule)) parsed.fullDaySchedule = DEFAULT_CONFIG.fullDaySchedule;
-            if(!parsed.socialLinks) parsed.socialLinks = DEFAULT_CONFIG.socialLinks;
+            if(!parsed.socialLinks) {
+                parsed.socialLinks = DEFAULT_CONFIG.socialLinks;
+            } else {
+                // Ensure required defaults if missing
+                if (!parsed.socialLinks.instagram || parsed.socialLinks.instagram === "https://instagram.com/rskesports") {
+                    parsed.socialLinks.instagram = DEFAULT_CONFIG.socialLinks.instagram;
+                }
+                if (!parsed.socialLinks.youtube || parsed.socialLinks.youtube === "https://youtube.com") {
+                    parsed.socialLinks.youtube = DEFAULT_CONFIG.socialLinks.youtube;
+                }
+                if (!parsed.socialLinks.whatsapp || parsed.socialLinks.whatsapp === "7991624317") {
+                    parsed.socialLinks.whatsapp = "7317601274";
+                }
+                if (!parsed.socialLinks.contactWhatsapp1 || parsed.socialLinks.contactWhatsapp1 === "7991624317") {
+                    parsed.socialLinks.contactWhatsapp1 = "7317601274";
+                }
+                if (!parsed.socialLinks.bookingWhatsapp || parsed.socialLinks.bookingWhatsapp === "7991624317") {
+                    parsed.socialLinks.bookingWhatsapp = "7317601274";
+                }
+                if (!parsed.socialLinks.prizeWhatsapp || parsed.socialLinks.prizeWhatsapp === "7991624317") {
+                    parsed.socialLinks.prizeWhatsapp = "7317601274";
+                }
+                if (!parsed.socialLinks.resultWhatsapp || parsed.socialLinks.resultWhatsapp === "7991624317") {
+                    parsed.socialLinks.resultWhatsapp = "7317601274";
+                }
+            }
             if(!parsed.registeredTeams) parsed.registeredTeams = [];
             return parsed;
         }
@@ -1365,7 +1362,9 @@
             }
 
             const message = `Hello RSK ESPORTS, I want to book a slot.%0A%0ATeam Name: ${encodeURIComponent(teamName)}%0AEntry: ${encodeURIComponent(entry)}%0AMatch Time: ${encodeURIComponent(time)}%0A${quickBookingMode === 'pool' ? `Prize Pool: ${encodeURIComponent(config.pools.find(p => p.id === quickBookingPoolId).prize)}%0A` : ''}%0APlease confirm my slot.`;
-            const number=String(config?.socialLinks?.bookingWhatsapp||config?.socialLinks?.whatsapp||'7991624317').replace(/\D/g,'');
+            
+            // Redirect directly to 7317601274 as requested
+            const number = "7317601274";
             window.open(`https://wa.me/91${number}?text=${message}`, '_blank');
             closeQuickBooking();
         }
@@ -1409,12 +1408,12 @@
             closeRegistrationModal();
 
             document.getElementById('paymentAmountDisplay').innerText = `₹${pool.entryNum} INR`;
-            document.getElementById('upiIdText').innerText = config.upiId || "7991624317@upi";
+            document.getElementById('upiIdText').innerText = config.upiId || "7317601274@upi";
 
             if (config.customQrImage) {
                 document.getElementById('upiQrCodeImg').src = config.customQrImage;
             } else {
-                const upiString = `upi://pay?pa=${encodeURIComponent(config.upiId || '7991624317@upi')}&pn=RSK_ESPORTS&am=${pool.entryNum}&cu=INR`;
+                const upiString = `upi://pay?pa=${encodeURIComponent(config.upiId || '7317601274@upi')}&pn=RSK_ESPORTS&am=${pool.entryNum}&cu=INR`;
                 document.getElementById('upiQrCodeImg').src = `https://quickchart.io/qr?text=${encodeURIComponent(upiString)}&size=200`;
             }
 
@@ -1536,7 +1535,6 @@
             return String(value ?? "").replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
         }
 
-        // AUTO-SYNC TELEGRAM CALLBACKS WITH WEBSITE STATUS
         async function checkTelegramUpdates() {
             try {
                 const lastUpdateId = Number(localStorage.getItem('rsk_tg_last_update_id') || 0);
@@ -1566,7 +1564,6 @@
                         bookingId = callbackData.substring("REJECT_".length);
                     }
 
-                    // Ignore unrelated Telegram callbacks.
                     if (!action || !bookingId) continue;
 
                     const teamIndex = config.registeredTeams.findIndex(t => t.id === bookingId);
@@ -1587,7 +1584,6 @@
                     config.registeredTeams[teamIndex].status = action;
                     updated = true;
 
-                    // Immediately confirm the button click in Telegram.
                     await telegramRequest("answerCallbackQuery", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -1597,7 +1593,6 @@
                         })
                     }).catch(err => console.error("answerCallbackQuery error:", err.message));
 
-                    // Remove the old Approve/Reject buttons after action.
                     if (callback.message) {
                         const statusText = action === "Approved"
                             ? "✅ STATUS: APPROVED"
@@ -1634,7 +1629,6 @@
                 telegramLastError = err.message || "Unknown Telegram polling error";
                 console.error("Telegram Poll Sync Error:", telegramLastError);
 
-                // Do not spam alerts every 3 seconds.
                 if (telegramLastError !== localStorage.getItem('rsk_tg_last_error')) {
                     localStorage.setItem('rsk_tg_last_error', telegramLastError);
                     console.warn("Telegram polling stopped/error:", telegramLastError);
@@ -1642,7 +1636,6 @@
             }
         }
 
-        // Poll Telegram Updates Every 3 Seconds
         setInterval(checkTelegramUpdates, 3000);
 
         function updateStatusModalView(booking) {
@@ -1659,7 +1652,6 @@
                 waBox.classList.add('hidden');
             } else if (booking.status === 'Approved') {
                 const config = getAppConfig();
-                // Dynamically fetch exact slot WhatsApp Community link configured in Admin
                 const groupLink = (config.slotCommunityLinks && config.slotCommunityLinks[booking.slot]) || "#";
                 
                 iconBox.innerHTML = `<i class="fa-solid fa-circle-check text-5xl text-emerald-400 animate-bounce"></i>`;
@@ -1681,7 +1673,6 @@
             document.getElementById('successModal').classList.add('hidden');
         }
 
-        // VIEW PROOF MODAL LOGIC (FIXED VIEW PROOF FUNCTIONALITY)
         function openProofModal(index) {
             const config = getAppConfig();
             const booking = config.registeredTeams[index];
@@ -1697,7 +1688,6 @@
             document.getElementById('proofViewerModal').classList.add('hidden');
         }
 
-        // RESULT SYSTEM LOGIC
         function closeResultModal() {
             document.getElementById('resultModal').classList.add('hidden');
         }
@@ -1711,9 +1701,10 @@
             ds.innerHTML=dates.length?dates.map(d=>`<option value="${d}">${d}</option>`).join(''):'<option value="">No result date available</option>';
             if(selectedDate&&dates.includes(selectedDate))ds.value=selectedDate;
         }
+
         function openContactUsChooser(){
             const config=getAppConfig(), s=config.socialLinks||{};
-            const n1=String(s.contactWhatsapp1||s.whatsapp||'7991624317').replace(/\D/g,'');
+            const n1=String(s.contactWhatsapp1||s.whatsapp||'7317601274').replace(/\D/g,'');
             const n2=String(s.contactWhatsapp2||'').replace(/\D/g,'');
             const wrap=document.getElementById('contactUsChooserButtons');
             const nums=[n1,n2].filter((n,i,a)=>n&&a.indexOf(n)===i);
@@ -1721,33 +1712,64 @@
             document.getElementById('contactUsChooserModal').classList.remove('hidden');
             document.getElementById('contactUsChooserModal').classList.add('flex');
         }
+
         function closeContactUsChooser(){
             const el=document.getElementById('contactUsChooserModal');
             el.classList.add('hidden');
             el.classList.remove('flex');
         }
+
         function contactUsToWhatsApp(number){
             const message=encodeURIComponent('Hello RSK ESPORTS, I have a problem. Please help me.');
             window.open(`https://wa.me/91${String(number).replace(/\D/g,'')}?text=${message}`,'_blank');
             closeContactUsChooser();
         }
+
         function contactSupportWhatsApp(){
             const config=getAppConfig();
-            const number=String(config?.socialLinks?.resultWhatsapp||config?.socialLinks?.whatsapp||'7991624317').replace(/\D/g,'');
+            const number=String(config?.socialLinks?.contactWhatsapp1||config?.socialLinks?.resultWhatsapp||config?.socialLinks?.whatsapp||'7317601274').replace(/\D/g,'');
             const message=encodeURIComponent('Hello RSK ESPORTS, I have a problem regarding my match/result. Please help me.');
             window.open(`https://wa.me/91${number}?text=${message}`,'_blank');
         }
-        function openResultModal(){document.getElementById('resultModal').classList.remove('hidden');updateResultDateOptions();displaySelectedResult();}
-        function handleResultFilterChange(){const d=document.getElementById('resultDateSelect')?.value||'';updateResultDateOptions(d);displaySelectedResult();}
+
+        function openResultModal(){
+            document.getElementById('resultModal').classList.remove('hidden');
+            updateResultDateOptions();
+            displaySelectedResult();
+        }
+
+        function handleResultFilterChange(){
+            const d=document.getElementById('resultDateSelect')?.value||'';
+            updateResultDateOptions(d);
+            displaySelectedResult();
+        }
+
         function displaySelectedResult(){
             const c=getAppConfig(), t=document.getElementById('resultTimeSelect')?.value||'', l=document.getElementById('resultLobbySelect')?.value||'L1', ds=document.getElementById('resultDateSelect'), selected=ds?.value||'', soon=document.getElementById('resultComingSoon'), list=document.getElementById('resultList');
-            const dates=[...new Set((c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date).map(r=>r.date))].sort().reverse(); if(ds&&dates.length&&!dates.includes(selected))ds.value=dates[0];
-            const active=ds?.value||''; currentResultSlides=(c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date===active); currentResultSlideIndex=0;
-            if(currentResultSlides.length){soon.classList.add('hidden');list.classList.remove('hidden');renderResultSlide();}else{currentResultSlides=[];list.classList.add('hidden');soon.classList.remove('hidden');}
+            const dates=[...new Set((c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date).map(r=>r.date))].sort().reverse(); 
+            if(ds&&dates.length&&!dates.includes(selected))ds.value=dates[0];
+            const active=ds?.value||''; 
+            currentResultSlides=(c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date===active); 
+            currentResultSlideIndex=0;
+            if(currentResultSlides.length){
+                soon.classList.add('hidden');
+                list.classList.remove('hidden');
+                renderResultSlide();
+            } else {
+                currentResultSlides=[];
+                list.classList.add('hidden');
+                soon.classList.remove('hidden');
+            }
         }
+
         function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
         function rankCls(r){return r<=3?'bg-amber-400/20 border-amber-300/60 text-amber-100':r===4?'bg-purple-500/20 border-purple-300/50 text-purple-100':r<=8?'bg-sky-500/15 border-sky-300/40 text-sky-100':'bg-black/30 border-esports-lightPurple/30 text-white';}
-        function renderResultTable(res){const rows=res.rows||[];return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left"><div class="flex justify-between items-center mb-3 pb-2 border-b border-esports-lightPurple/40"><span class="text-xs font-rajdhani font-bold text-esports-yellow">DATE: ${esc(res.date)} • ${esc(res.lobby||'L1')}</span><span class="text-[10px] font-mono text-gray-400">${esc(res.slot)}</span></div>${res.tournamentName?`<div class="text-[10px] text-gray-400 font-rajdhani font-bold mb-2 text-center uppercase">${esc(res.tournamentName)}</div>`:''}<div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40"><table class="w-full min-w-[520px] text-[11px] font-rajdhani font-bold border-collapse"><thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2">#</th><th class="px-2 py-2 text-left">TEAM NAME</th><th class="px-2 py-2">MP</th><th class="px-2 py-2">WIN</th><th class="px-2 py-2">POS.</th><th class="px-2 py-2">KILLS</th><th class="px-2 py-2">TOTAL</th></tr></thead><tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r,i)=>`<tr class="border ${rankCls(i+1)}"><td class="px-2 py-2 text-center">${i+1}</td><td class="px-2 py-2 whitespace-nowrap">${esc(r.teamName)}</td><td class="px-2 py-2 text-center">${r.mp}</td><td class="px-2 py-2 text-center">${r.win}</td><td class="px-2 py-2 text-center">${r.pos}</td><td class="px-2 py-2 text-center">${r.kills}</td><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${r.total}</td></tr>`).join('')}</tbody></table></div></div>`;}
+        
+        function renderResultTable(res){
+            const rows=res.rows||[];
+            return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left"><div class="flex justify-between items-center mb-3 pb-2 border-b border-esports-lightPurple/40"><span class="text-xs font-rajdhani font-bold text-esports-yellow">DATE: ${esc(res.date)} • ${esc(res.lobby||'L1')}</span><span class="text-[10px] font-mono text-gray-400">${esc(res.slot)}</span></div>${res.tournamentName?`<div class="text-[10px] text-gray-400 font-rajdhani font-bold mb-2 text-center uppercase">${esc(res.tournamentName)}</div>`:''}<div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40"><table class="w-full min-w-[520px] text-[11px] font-rajdhani font-bold border-collapse"><thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2">#</th><th class="px-2 py-2 text-left">TEAM NAME</th><th class="px-2 py-2">MP</th><th class="px-2 py-2">WIN</th><th class="px-2 py-2">POS.</th><th class="px-2 py-2">KILLS</th><th class="px-2 py-2">TOTAL</th></tr></thead><tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r,i)=>`<tr class="border ${rankCls(i+1)}"><td class="px-2 py-2 text-center">${i+1}</td><td class="px-2 py-2 whitespace-nowrap">${esc(r.teamName)}</td><td class="px-2 py-2 text-center">${r.mp}</td><td class="px-2 py-2 text-center">${r.win}</td><td class="px-2 py-2 text-center">${r.pos}</td><td class="px-2 py-2 text-center">${r.kills}</td><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${r.total}</td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+
         function renderResultSlide(){
             const box=document.getElementById('resultList');
             if(!currentResultSlides.length) return;
@@ -1760,6 +1782,7 @@
                     <button type="button" onclick="showResultTable(${i})" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-teko text-lg font-bold px-4 py-1.5 rounded-lg">VIEW RESULTS</button>
                 </div>`).join('')}</div>`;
         }
+
         function showResultTable(index){
             const res=currentResultSlides[index];
             if(!res) return;
@@ -1771,11 +1794,8 @@
             }
             box.innerHTML=`<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left"><div class="flex justify-between mb-2"><span class="text-xs text-esports-yellow">DATE: ${esc(res.date)} • ${esc(res.lobby||'L1')}</span><span class="text-[10px] text-gray-400">${esc(res.slot)}</span></div><img src="${res.image}" class="w-full rounded-lg object-contain"></div><button type="button" onclick="renderResultSlide()" class="w-full mt-3 bg-esports-purple border border-esports-lightPurple text-white font-rajdhani font-bold py-2 rounded-lg"><i class="fa-solid fa-arrow-left mr-1"></i> BACK TO RESULTS</button>`;
         }
-        function changeResultSlide(d){return;}
 
         function handleGetPrizePoolClick() {
-            // GET PRIZE POOL is available only when a result is actually displayed
-            // for the currently selected time/date.
             const selectedTime = document.getElementById('resultTimeSelect')?.value || '';
             const selectedDate = document.getElementById('resultDateSelect')?.value || '';
             const selectedLobby = document.getElementById('resultLobbySelect')?.value || 'L1';
@@ -1810,14 +1830,12 @@
         function renderMainNoticePopup() {
             const config = getAppConfig();
             const popup = document.getElementById('mainNoticePopup');
-            const text = document.getElementById('mainNoticePopupText');
-            if (!popup || !text) return;
+            if (!popup) return;
 
             const hasNotice = !!(config.showTopBannerNotice &&
                 ((config.noticeText || '').trim() || config.noticeImage));
 
             if (hasNotice) {
-                text.textContent = (config.noticeText || '').trim() || 'New notice available. Click to view.';
                 popup.classList.remove('hidden');
             } else {
                 popup.classList.add('hidden');
@@ -1875,8 +1893,9 @@
             }
 
             const message = `Hello RSK ESPORTS, I want to claim my prize pool.%0A%0ATeam Name: ${encodeURIComponent(teamName)}%0AMatch Time: ${encodeURIComponent(time)}%0AMatch Date: ${encodeURIComponent(date)}%0ARank: ${encodeURIComponent(rank)}%0A%0APlease process my prize pool.`;
-            const config=getAppConfig();
-            const number=String(config?.socialLinks?.prizeWhatsapp||config?.socialLinks?.whatsapp||'7991624317').replace(/\D/g,'');
+            
+            // Redirect directly to 7317601274 as requested
+            const number = "7317601274";
             window.open(`https://wa.me/91${number}?text=${message}`, '_blank');
             closePrizeClaimModal();
         }
@@ -1895,7 +1914,6 @@
             e.preventDefault();
             const pass = document.getElementById('adminPassInput').value;
             if(pass === '9793694317') {
-                // Request Web Notification permission when admin logs in
                 requestNotificationPermission();
 
                 document.getElementById('adminLoginModal').classList.add('hidden');
@@ -1981,7 +1999,6 @@
             alert(`Team "${config.registeredTeams[idx].teamName}" ka status update karke ${status} kar diya gaya hai.`);
         }
 
-        // EXPORT BOOKINGS DETAILS TO CSV / XLX FILE
         function exportBookingsToCSV() {
             const config = getAppConfig();
             if (!config.registeredTeams || config.registeredTeams.length === 0) {
@@ -2036,16 +2053,16 @@
             });
 
             const s = config.socialLinks || {};
-            if(document.getElementById('admin_contact_whatsapp_1')) document.getElementById('admin_contact_whatsapp_1').value = s.contactWhatsapp1 || s.whatsapp || '';
+            if(document.getElementById('admin_contact_whatsapp_1')) document.getElementById('admin_contact_whatsapp_1').value = s.contactWhatsapp1 || s.whatsapp || '7317601274';
             if(document.getElementById('admin_contact_whatsapp_2')) document.getElementById('admin_contact_whatsapp_2').value = s.contactWhatsapp2 || '';
-            if(document.getElementById('admin_result_whatsapp')) document.getElementById('admin_result_whatsapp').value = s.resultWhatsapp || s.whatsapp || '';
-            if(document.getElementById('admin_booking_whatsapp')) document.getElementById('admin_booking_whatsapp').value = s.bookingWhatsapp || s.whatsapp || '';
-            if(document.getElementById('admin_prize_whatsapp')) document.getElementById('admin_prize_whatsapp').value = s.prizeWhatsapp || s.whatsapp || '';
-            if(document.getElementById('admin_social_instagram')) document.getElementById('admin_social_instagram').value = s.instagram || '';
-            if(document.getElementById('admin_social_youtube')) document.getElementById('admin_social_youtube').value = s.youtube || '';
+            if(document.getElementById('admin_result_whatsapp')) document.getElementById('admin_result_whatsapp').value = s.resultWhatsapp || s.whatsapp || '7317601274';
+            if(document.getElementById('admin_booking_whatsapp')) document.getElementById('admin_booking_whatsapp').value = s.bookingWhatsapp || s.whatsapp || '7317601274';
+            if(document.getElementById('admin_prize_whatsapp')) document.getElementById('admin_prize_whatsapp').value = s.prizeWhatsapp || s.whatsapp || '7317601274';
+            if(document.getElementById('admin_social_instagram')) document.getElementById('admin_social_instagram').value = s.instagram || 'https://www.instagram.com/rsk___esports?igsh=MTEzeXQzOGh4cjF0';
+            if(document.getElementById('admin_social_youtube')) document.getElementById('admin_social_youtube').value = s.youtube || 'https://www.youtube.com/@RSK_ESPORTS_79';
             if(document.getElementById('admin_social_discord')) document.getElementById('admin_social_discord').value = s.discord || '';
 
-            if(document.getElementById('adminUpiIdInput')) document.getElementById('adminUpiIdInput').value = config.upiId || '7991624317@upi';
+            if(document.getElementById('adminUpiIdInput')) document.getElementById('adminUpiIdInput').value = config.upiId || '7317601274@upi';
             
             const today = new Date().toISOString().split('T')[0];
             if(document.getElementById('adminResultDateInput')) document.getElementById('adminResultDateInput').value = today;
@@ -2173,6 +2190,7 @@
             saveAppConfig(c);
             renderAdminResultsManager();
             syncPcResultsToFirebaseWithoutBlocking(c);
+            try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             document.getElementById('adminResultReplaceId').value='';
             clearPendingResultPreview();
             alert(`${savedCount} .pc result${savedCount>1?'s':''} saved successfully.`);
@@ -2190,6 +2208,7 @@
             });
             try{saveAppConfig(c);}catch(err){return alert('Photo save nahi ho paya. Image size chhota karke dobara try karein.');}
             renderAdminResultsManager();
+            try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             const savedCount=pendingImageResults.length;
             document.getElementById('adminResultImageReplaceId').value='';
             clearPendingResultPreview();
@@ -2198,7 +2217,41 @@
 
         function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p></div><div class="flex gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button><button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('');}
         function prepareReplaceResult(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;clearPendingResultPreview();document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';document.getElementById('adminResultDateInput').value=r.date||'';document.getElementById('adminResultReplaceId').value=r.type==='pc'?r.id:'';document.getElementById('adminResultImageReplaceId').value=r.type==='image'?r.id:'';alert(r.type==='image'?'REPLACE mode on hai. Nayi JPG/PNG photo choose karke pehle ADMIN VIEW/EDIT check karein, phir UPLOAD RESULT PHOTO dabayein.':'REPLACE mode on hai. Nayi .pc file choose karke pehle ADMIN VIEW/EDIT check karein, phir ADD / REPLACE .PC RESULT dabayein.');}
-        function deleteResultItem(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;if(confirm(`Kya aap ${r.lobby||'L1'} | ${r.slot} | ${r.date} ka result DELETE karna chahte hain?`)){c.resultsList.splice(i,1);saveAppConfig(c);renderAdminResultsManager();if(r.type==='pc')syncPcResultsToFirebaseWithoutBlocking(c);}}
+        
+        function deleteResultItem(i){
+            const c = getAppConfig();
+            const r = c.resultsList?.[i];
+            if(!r) return;
+            
+            if(confirm(`Kya aap ${r.lobby||'L1'} | ${r.slot} | ${r.date} ka result DELETE karna chahte hain? Delete karne ke baad ye kisi ko nahi dikhega.`)){
+                const deletedId = r.id;
+                const wasPc = (r.type === 'pc');
+                
+                // Remove from local list
+                c.resultsList.splice(i, 1);
+                saveAppConfig(c);
+                renderAdminResultsManager();
+                
+                // Sync complete removal to Firebase so no one can see it
+                if (wasPc && rskFirebaseReady && rskFirebaseDb && deletedId) {
+                    rskFirebaseDb.ref(RSK_PC_RESULTS_PATH + '/' + deletedId).remove().catch(err => {
+                        console.error('Firebase single result remove failed, doing full set sync:', err);
+                        syncPcResultsToFirebaseWithoutBlocking(c);
+                    });
+                } else if (wasPc) {
+                    syncPcResultsToFirebaseWithoutBlocking(c);
+                }
+                
+                // Refresh client view immediately so it disappears for everyone on page
+                try {
+                    updateResultDateOptions();
+                    displaySelectedResult();
+                } catch (_) {}
+                
+                alert('Result successfully delete ho gaya hai. Ab ye kisi ko nahi dikhega.');
+            }
+        }
+
         function saveRank1Announcement() {
             const teamInput = document.getElementById('adminRank1TeamInput');
             const matchSelect = document.getElementById('adminRank1MatchSelect');
@@ -2337,7 +2390,7 @@
 
         function saveCustomPaymentQr() {
             const config = getAppConfig();
-            config.upiId = document.getElementById('adminUpiIdInput').value || '7991624317@upi';
+            config.upiId = document.getElementById('adminUpiIdInput').value || '7317601274@upi';
             
             const fileInput = document.getElementById('adminCustomQrInput');
             const file = fileInput.files[0];
@@ -2359,15 +2412,15 @@
         function saveSocialMediaLinks() {
             const config = getAppConfig();
             config.socialLinks = {
-                whatsapp: document.getElementById('admin_contact_whatsapp_1').value,
-                contactWhatsapp1: document.getElementById('admin_contact_whatsapp_1').value,
-                contactWhatsapp2: document.getElementById('admin_contact_whatsapp_2').value,
-                resultWhatsapp: document.getElementById('admin_result_whatsapp').value,
-                bookingWhatsapp: document.getElementById('admin_booking_whatsapp').value,
-                prizeWhatsapp: document.getElementById('admin_prize_whatsapp').value,
-                instagram: document.getElementById('admin_social_instagram').value,
-                youtube: document.getElementById('admin_social_youtube').value,
-                discord: document.getElementById('admin_social_discord').value
+                whatsapp: document.getElementById('admin_contact_whatsapp_1').value || '7317601274',
+                contactWhatsapp1: document.getElementById('admin_contact_whatsapp_1').value || '7317601274',
+                contactWhatsapp2: document.getElementById('admin_contact_whatsapp_2').value || '',
+                resultWhatsapp: document.getElementById('admin_result_whatsapp').value || '7317601274',
+                bookingWhatsapp: document.getElementById('admin_booking_whatsapp').value || '7317601274',
+                prizeWhatsapp: document.getElementById('admin_prize_whatsapp').value || '7317601274',
+                instagram: document.getElementById('admin_social_instagram').value || 'https://www.instagram.com/rsk___esports?igsh=MTEzeXQzOGh4cjF0',
+                youtube: document.getElementById('admin_social_youtube').value || 'https://www.youtube.com/@RSK_ESPORTS_79',
+                discord: document.getElementById('admin_social_discord').value || ''
             };
             saveAppConfig(config);
             alert('Social Media & Contact Links Updated!');
