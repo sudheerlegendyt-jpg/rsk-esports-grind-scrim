@@ -735,6 +735,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button type="button" onclick="saveMatchResultPc()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">ADD / REPLACE .PC RESULT</button>
                     <button type="button" onclick="saveMatchResultImage()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">UPLOAD RESULT PHOTO</button>
+                    <button type="button" onclick="saveResultCodeOnly()" class="w-full bg-esports-yellow hover:bg-amber-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">ADD CODE ONLY</button>
                 </div>
 
                 <!-- ADMIN PREVIEW BEFORE FINAL SAVE -->
@@ -752,6 +753,15 @@
                     <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2">MANAGED UPLOADED RESULTS LIST</h4>
                     <div id="adminResultsManagerList" class="space-y-3">
                         <!-- Uploaded Results Cards -->
+                    </div>
+                </div>
+
+                <!-- ADMIN: RESULT CODE ONLY MANAGER -->
+                <div class="pt-4 border-t border-esports-lightPurple/50">
+                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2">RESULT CODES — RESULT COMING SOON</h4>
+                    <p class="text-xs text-gray-400 mb-2">Code pehle add karein. Viewer code dalega to RESULT COMING SOON dikhega. Baad me same code par .PC result ya photo upload karein.</p>
+                    <div id="adminResultCodesManagerList" class="space-y-3">
+                        <!-- Code Only Cards -->
                     </div>
                 </div>
             </div>
