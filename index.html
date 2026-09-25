@@ -1040,6 +1040,8 @@
         let rskFirebaseReady = false;
         const RSK_RESULTS_PATH = 'rsk_esports_results';
         const RSK_NOTICE_PATH = 'rsk_esports_notice';
+        const RSK_TOP_BANNER_PATH = 'rsk_esports_top_banner';
+        const RSK_RESULT_CODES_PATH = 'rsk_esports_result_codes';
 
         function initRskFirebase() {
             try {
@@ -1047,23 +1049,7 @@
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 rskFirebaseDb = firebase.database();
                 rskFirebaseReady = true;
-
-                // Real-time listener: keeps BOTH .pc and photo results in sync for every viewer.
-                rskFirebaseDb.ref(RSK_RESULTS_PATH).on('value', snapshot => {
-                    const cloud = snapshot.val();
-                    const config = getAppConfig();
-
-                    if (!cloud || typeof cloud !== 'object') {
-                        config.resultsList = [];
-                    } else {
-                        config.resultsList = Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image'));
-                    }
-                    localStorage.setItem('rsk_app_config', JSON.stringify(config));
-                    renderAdminResultsManager();
-                    try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
-                }, error => {
-                    console.error('Firebase results listener error:', error);
-                });
+                // Result data is NOT auto-loaded for viewers. It is fetched only after secret-code submit.
 
                 // Real-time listener: keeps the notice popup in sync for every viewer.
                 rskFirebaseDb.ref(RSK_NOTICE_PATH).on('value', snapshot => {
@@ -1076,6 +1062,15 @@
                     renderMainNoticePopup();
                 }, error => {
                     console.error('Firebase notice listener error:', error);
+                });
+                rskFirebaseDb.ref(RSK_TOP_BANNER_PATH).on('value', snapshot => {
+                    const cloud = snapshot.val();
+                    const config = getAppConfig();
+                    config.topBannerText = (cloud && cloud.text) || "";
+                    const banner = document.getElementById('topBannerTextDisplay');
+                    if (banner) banner.textContent = config.topBannerText;
+                }, error => {
+                    console.error('Firebase top banner listener error:', error);
                 });
             } catch (error) {
                 rskFirebaseReady = false;
@@ -1119,6 +1114,12 @@
                 console.error('Firebase notice sync failed:', error);
                 return false;
             }
+        }
+
+        async function syncTopBannerToFirebase(config) {
+            if (!rskFirebaseReady || !rskFirebaseDb) return false;
+            try { await rskFirebaseDb.ref(RSK_TOP_BANNER_PATH).set({ text: config.topBannerText || '' }); return true; }
+            catch (error) { console.error('Firebase top banner sync failed:', error); return false; }
         }
 
         async function telegramRequest(method, options = {}) {
@@ -1843,6 +1844,7 @@
            keeps seeing it until admin removes the code or deletes
            that result. */
         let rsUnlockedGroup = null;
+         let rsViewerResults = [];
 
         function rsShowStep(step) {
             document.getElementById('resultCodeStep').classList.toggle('hidden', step !== 'code');
@@ -1871,17 +1873,23 @@
             if (!slFbOk()) return rsShowError('Server se connect nahi ho paya. Internet check karke dobara try karein.');
             btn.disabled = true; btn.textContent = 'CHECKING...';
             try {
-                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
-                const cloud = snap.val() || {};
-                const entry = Object.values(cloud).find(r => r && r.code && slNormCode(r.code) === code && (r.type === 'pc' || r.type === 'image'));
-                if (!entry) { rsShowError('Invalid secret code! Sahi code daalein.'); return; }
-                rsUnlockedGroup = { slot: entry.slot, lobby: entry.lobby || 'L1', date: entry.date };
+                const codeSnap = await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH + '/' + code).once('value');
+                const codeEntry = codeSnap.val();
+                const resultSnap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(code).once('value');
+                const cloud = resultSnap.val() || {};
+                rsViewerResults = Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image') && slNormCode(r.code) === code);
+                if (!codeEntry && !rsViewerResults.length) {
+                    rsViewerResults = [];
+                    return rsShowError('Invalid secret code! Sahi code daalein.');
+                }
+                const entry = rsViewerResults[0] || codeEntry;
+                rsUnlockedGroup = { slot: entry.slot || '1-3 PM', lobby: entry.lobby || 'L1', date: entry.date || '' };
                 document.getElementById('resultLobbySelect').value = entry.lobby || 'L1';
-                document.getElementById('resultTimeSelect').value = entry.slot;
-                document.getElementById('resultGroupSlotDisplay').textContent = entry.slot;
-                document.getElementById('resultGroupLobbyDisplay').textContent = (entry.lobby || 'L1') + ' • ' + entry.date;
+                document.getElementById('resultTimeSelect').value = entry.slot || '1-3 PM';
+                document.getElementById('resultGroupSlotDisplay').textContent = entry.slot || '';
+                document.getElementById('resultGroupLobbyDisplay').textContent = (entry.lobby || 'L1') + (entry.date ? ' • ' + entry.date : '');
                 rsShowStep('group');
-                updateResultDateOptions(entry.date);
+                updateResultDateOptions(entry.date || '');
                 displaySelectedResult();
             } catch (err) {
                 console.error('Result secret code check failed:', err);
@@ -1944,7 +1952,7 @@
             const dates=[...new Set((c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date).map(r=>r.date))].sort().reverse(); 
             if(ds&&dates.length&&!dates.includes(selected))ds.value=dates[0];
             const active=ds?.value||''; 
-            currentResultSlides=(c.resultsList||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&r.date===active); 
+            currentResultSlides=(rsViewerResults||[]).filter(r=>r.slot===t&&(r.lobby||'L1')===l&&(!active || r.date===active)); 
             currentResultSlideIndex=0;
             if(currentResultSlides.length){
                 soon.classList.add('hidden');
@@ -2146,7 +2154,9 @@
             loadAdminFormValues();
             renderAdminPoolEditor();
             renderBookedSlotsTable();
+            loadAdminResultsOnce();
             renderAdminResultsManager();
+            renderAdminResultCodesManager();
             adminSlotAuthThenStart();
             renderAdminRank1Announcements();
             checkAdminNotificationAlert();
@@ -2443,6 +2453,7 @@
             saveAppConfig(c);
             renderAdminResultsManager();
             syncResultsToFirebaseWithoutBlocking(c);
+            removeResultCodeOnlyFromFirebase(code);
             try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             document.getElementById('adminResultReplaceId').value='';
             document.getElementById('adminResultCodeInput').value='';
@@ -2476,6 +2487,63 @@
                 clearPendingResultPreview();
                 alert(`${savedCount} result photo${savedCount>1?'s':''} saved successfully.`);
             });
+        }
+
+        async function loadAdminResultsOnce() {
+            if (!slRequireAdmin() || !slFbOk()) return;
+            try {
+                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
+                const cloud = snap.val() || {};
+                const c = getAppConfig();
+                c.resultsList = Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image'));
+                saveAppConfig(c);
+                renderAdminResultsManager();
+            } catch (err) { console.error('Admin result load failed:', err); }
+        }
+
+        async function saveResultCodeOnly() {
+            if (!slRequireAdmin()) return;
+            const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1';
+            const slot=document.getElementById('adminResultSlotSelect')?.value||'';
+            const date=document.getElementById('adminResultDateInput')?.value||'';
+            const code=slNormCode(document.getElementById('adminResultCodeInput')?.value);
+            if(!date)return alert('Kripya date select karein!');
+            if(!slValidCode(code))return alert('Result secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
+            if(!slFbOk())return alert('Realtime database connect nahi hai. Internet check karein.');
+            try {
+                const existingCode=await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+code).once('value');
+                if(existingCode.exists())return alert('Ye secret code pehle se added hai. Alag code use karein.');
+                const existingResult=await rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(code).once('value');
+                if(existingResult.exists())return alert('Ye secret code already result ke saath use ho raha hai.');
+                await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+code).set({code,lobby,slot,date,createdAt:Date.now()});
+                renderAdminResultCodesManager();
+                document.getElementById('adminResultCodeInput').value='';
+                alert('Result code add ho gaya. Abhi RESULT upload nahi hua hai. Viewer ko RESULT COMING SOON dikhega.');
+            } catch(err) { console.error('Result code save failed:',err); alert('Code save nahi ho paya: '+(err.message||err)); }
+        }
+
+        async function removeResultCodeOnlyFromFirebase(code) {
+            const c=slNormCode(code); if(!c || !slFbOk())return;
+            try { await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+c).remove(); renderAdminResultCodesManager(); }
+            catch(err) { console.error('Result code cleanup failed:',err); }
+        }
+
+        async function deleteResultCodeOnly(code) {
+            if(!slRequireAdmin())return;
+            const c=slNormCode(code); if(!c || !slFbOk())return;
+            if(!confirm('Ye result code DELETE karna chahte hain?'))return;
+            try { await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+c).remove(); renderAdminResultCodesManager(); alert('Result code delete ho gaya.'); }
+            catch(err) { alert('Code delete nahi ho paya: '+(err.message||err)); }
+        }
+
+        async function renderAdminResultCodesManager() {
+            const box=document.getElementById('adminResultCodesManagerList'); if(!box || !slFbOk())return;
+            try {
+                const snap=await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
+                const data=snap.val()||{};
+                const items=Object.values(data).filter(x=>x&&x.code).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0));
+                box.innerHTML=items.length?items.map(r=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot||'')}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date||'')}</p><p class="text-[10px] font-bold text-amber-300">CODE: ${esc(r.code)}</p><p class="text-[10px] text-gray-400">RESULT: COMING SOON / NOT UPLOADED</p></div><button type="button" onclick="deleteResultCodeOnly('${esc(r.code)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div>`).join(''):'<p class="text-xs text-gray-400">Abhi koi code-only result code added nahi hai.</p>';
+            } catch(err) { console.error('Result code manager load failed:',err); }
         }
 
         function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p><p class="text-[10px] font-bold ${r.code?'text-emerald-400':'text-red-400'}">${r.code?('CODE: '+esc(r.code)):'NO CODE SET (viewer nahi dekh payega)'}</p></div><div class="flex gap-2"><div class="flex flex-col gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button>${r.code?`<button type="button" onclick="removeResultCode(${i})" class="bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE CODE</button>`:''}</div><div class="flex flex-col gap-2"><button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button><button type="button" onclick="editResultCode(${i})" class="bg-sky-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT CODE</button><button type="button" onclick="updateResultCode(${i})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg">UPDATE</button></div></div></div>`).join('');}
@@ -2666,6 +2734,7 @@
                 enabled: document.getElementById(`admin_full_enabled_${idx}`)?.checked !== false
             }));
             saveAppConfig(config);
+            syncTopBannerToFirebase(config);
             alert('Full Day Slot Settings Updated Successfully!');
         }
 
