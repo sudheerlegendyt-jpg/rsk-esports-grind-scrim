@@ -746,7 +746,7 @@
                 </h3>
                 <p class="text-xs font-rajdhani text-gray-300">Har lobby + time slot ka alag secret code set karein. Viewer wo code daalega to sirf usi group ka slot list, room ID aur password dikhega. Sab realtime database me save hota hai.</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Lobby *</label>
                         <select id="adminSlRoomLobby" onchange="slFillRoomForm()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option></select></div>
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Time Slot *</label>
@@ -755,6 +755,10 @@
                         <input type="text" id="adminSlRoomCode" maxlength="30" autocomplete="off" placeholder="e.g. RSK1L1" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani uppercase"></div>
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Match Number *</label>
                         <select id="adminSlRoomMatch" onchange="slFillRoomForm()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="1">MATCH 1</option><option value="2">MATCH 2</option><option value="3">MATCH 3</option></select></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room IDP Time</label>
+                        <input type="text" id="adminSlRoomIdpTime" maxlength="30" autocomplete="off" placeholder="e.g. 7:45 PM" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room Start Time</label>
+                        <input type="text" id="adminSlRoomStartTime" maxlength="30" autocomplete="off" placeholder="e.g. 8:00 PM" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room ID</label>
                         <input type="text" id="adminSlRoomId" maxlength="60" autocomplete="off" placeholder="Room ID" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Room Password</label>
@@ -2831,16 +2835,22 @@
             const m = (r && r.matches) || {}, out = [];
             for (let n = 1; n <= 3; n++) {
                 const x = m['m' + n];
-                if (x) out.push({ roomId: String(x.roomId || ''), roomPass: String(x.roomPass || '') });
-                else if (n === 1 && r) out.push({ roomId: String(r.roomId || ''), roomPass: String(r.roomPass || '') }); // purana data = Match 1
-                else out.push({ roomId: '', roomPass: '' });
+                if (x) out.push({ roomId: String(x.roomId || ''), roomPass: String(x.roomPass || ''), idpTime: String(x.idpTime || ''), startTime: String(x.startTime || '') });
+                else if (n === 1 && r) out.push({ roomId: String(r.roomId || ''), roomPass: String(r.roomPass || ''), idpTime: '', startTime: '' }); // purana data = Match 1
+                else out.push({ roomId: '', roomPass: '', idpTime: '', startTime: '' });
             }
             return out;
         }
 
         function slMatchBlock(n, m) {
+            const idpTime = String(m.idpTime || '').trim();
+            const startTime = String(m.startTime || '').trim();
             return `<div class="border border-esports-yellow/40 rounded-xl p-2 space-y-1.5 bg-esports-purple/20">
-                <p class="font-teko text-lg font-bold leading-none"><span class="bg-esports-yellow text-black px-1.5 rounded">MATCH ${n}</span></p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-teko text-lg font-bold leading-none"><span class="bg-esports-yellow text-black px-1.5 rounded">MATCH ${n}</span></p>
+                    <span class="font-rajdhani text-[11px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-2 py-0.5"><i class="fa-solid fa-clock mr-1"></i>IDP TIME: ${idpTime ? esc(idpTime) : 'COMING SOON...'}</span>
+                    <span class="font-rajdhani text-[11px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-2 py-0.5"><i class="fa-solid fa-flag-checkered mr-1"></i>START TIME: ${startTime ? esc(startTime) : 'COMING SOON...'}</span>
+                </div>
                 ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
                 ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
             </div>`;
@@ -2986,10 +2996,12 @@
             if (onlyIfEmpty === true && (codeEl.value || document.getElementById('adminSlRoomId').value || document.getElementById('adminSlRoomPass').value)) return;
             const f = Object.values(adminSlotRooms || {}).find(r => r && r.lobby === lobby && r.slot === slot);
             const mn = Number(document.getElementById('adminSlRoomMatch')?.value) || 1;
-            const m = f ? slRoomMatches(f)[mn - 1] : { roomId: '', roomPass: '' };
+            const m = f ? slRoomMatches(f)[mn - 1] : { roomId: '', roomPass: '', idpTime: '', startTime: '' };
             codeEl.value = f?.code || '';
             document.getElementById('adminSlRoomId').value = m.roomId;
             document.getElementById('adminSlRoomPass').value = m.roomPass;
+            document.getElementById('adminSlRoomIdpTime').value = m.idpTime;
+            document.getElementById('adminSlRoomStartTime').value = m.startTime;
         }
 
         async function saveSlotRoomDetails() {
@@ -2998,6 +3010,7 @@
             const match = Number(document.getElementById('adminSlRoomMatch').value) || 1;
             const code = slNormCode(document.getElementById('adminSlRoomCode').value);
             const roomId = document.getElementById('adminSlRoomId').value.trim(), roomPass = document.getElementById('adminSlRoomPass').value.trim();
+            const idpTime = document.getElementById('adminSlRoomIdpTime').value.trim(), startTime = document.getElementById('adminSlRoomStartTime').value.trim();
             if (!slValidCode(code)) return alert('Secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
             if (!slFbOk()) return alert('Realtime database connect nahi hai. Internet check karein.');
             const owner = adminSlotRooms[code];
@@ -3007,15 +3020,15 @@
             let merged;
             if (oldEntry) {
                 // code badla gaya: purane code ke saare matches naye code par shift karo
-                const ms = slRoomMatches(oldEntry); ms[match - 1] = { roomId, roomPass };
+                const ms = slRoomMatches(oldEntry); ms[match - 1] = { roomId, roomPass, idpTime, startTime };
                 const matches = {}; ms.forEach((x, i) => { matches['m' + (i + 1)] = x; });
                 merged = { code, lobby, slot, matches, updatedAt: now };
                 updates[code] = merged; updates[oldEntry.code] = null;
             } else {
                 const cur = adminSlotRooms[code] || {};
                 updates[code + '/code'] = code; updates[code + '/lobby'] = lobby; updates[code + '/slot'] = slot; updates[code + '/updatedAt'] = now;
-                updates[code + '/matches/m' + match] = { roomId, roomPass };
-                merged = { ...cur, code, lobby, slot, updatedAt: now, matches: { ...(cur.matches || {}), ['m' + match]: { roomId, roomPass } } };
+                updates[code + '/matches/m' + match] = { roomId, roomPass, idpTime, startTime };
+                merged = { ...cur, code, lobby, slot, updatedAt: now, matches: { ...(cur.matches || {}), ['m' + match]: { roomId, roomPass, idpTime, startTime } } };
             }
             try {
                 await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).update(updates);
@@ -3034,6 +3047,8 @@
             document.getElementById('adminSlRoomCode').value = r.code || code;
             document.getElementById('adminSlRoomId').value = slRoomMatches(r)[0].roomId;
             document.getElementById('adminSlRoomPass').value = slRoomMatches(r)[0].roomPass;
+            document.getElementById('adminSlRoomIdpTime').value = slRoomMatches(r)[0].idpTime;
+            document.getElementById('adminSlRoomStartTime').value = slRoomMatches(r)[0].startTime;
             document.getElementById('adminSlRoomCode').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -3042,12 +3057,14 @@
             const r = adminSlotRooms[code]; if (!r) return alert('Ye group ab available nahi hai.');
             const roomId = (document.getElementById(`slEditRoomId_${code}_${n}`)?.value || '').trim();
             const roomPass = (document.getElementById(`slEditRoomPass_${code}_${n}`)?.value || '').trim();
+            const idpTime = (document.getElementById(`slEditIdpTime_${code}_${n}`)?.value || '').trim();
+            const startTime = (document.getElementById(`slEditStartTime_${code}_${n}`)?.value || '').trim();
             if (!slFbOk()) return alert('Realtime database connect nahi hai. Internet check karein.');
             try {
-                await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).update({ ['matches/m' + n]: { roomId, roomPass }, updatedAt: Date.now() });
-                adminSlotRooms[code] = { ...r, updatedAt: Date.now(), matches: { ...(r.matches || {}), ['m' + n]: { roomId, roomPass } } };
+                await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).update({ ['matches/m' + n]: { roomId, roomPass, idpTime, startTime }, updatedAt: Date.now() });
+                adminSlotRooms[code] = { ...r, updatedAt: Date.now(), matches: { ...(r.matches || {}), ['m' + n]: { roomId, roomPass, idpTime, startTime } } };
                 renderAdminSlotManagers();
-                alert(`${r.slot} • ${r.lobby} • MATCH ${n} ka Room ID / Password update ho gaya. Viewer ko naya turant dikhega.`);
+                alert(`${r.slot} • ${r.lobby} • MATCH ${n} ka details update ho gaye. Viewer ko naya turant dikhega.`);
             } catch (err) { console.error(err); alert('Update nahi ho paya: ' + slErrText(err) + '\nFirebase Rules / internet check karein.'); }
         }
 
@@ -3068,8 +3085,10 @@
                     <div class="min-w-0"><p class="text-xs font-bold text-esports-yellow">${esc(r.slot)} • ${esc(r.lobby)}</p>
                     <p class="text-[10px] text-gray-300">CODE: <span class="font-mono text-amber-300">${esc(r.code)}</span></p></div>
                     <div class="flex gap-2 shrink-0"><button type="button" onclick="editSlotRoom('${esc(r.code)}')" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT CODE</button><button type="button" onclick="deleteSlotRoom('${esc(r.code)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>
-                    ${slRoomMatches(r).map((m, i) => `<div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                    ${slRoomMatches(r).map((m, i) => `<div class="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center">
                         <span class="font-teko text-xl text-esports-yellow leading-none">MATCH ${i + 1}</span>
+                        <input type="text" id="slEditIdpTime_${esc(r.code)}_${i + 1}" value="${esc(m.idpTime)}" placeholder="IDP Time e.g. 7:45 PM" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
+                        <input type="text" id="slEditStartTime_${esc(r.code)}_${i + 1}" value="${esc(m.startTime)}" placeholder="Start Time e.g. 8:00 PM" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
                         <input type="text" id="slEditRoomId_${esc(r.code)}_${i + 1}" value="${esc(m.roomId)}" placeholder="Room ID" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
                         <input type="text" id="slEditRoomPass_${esc(r.code)}_${i + 1}" value="${esc(m.roomPass)}" placeholder="Password" class="w-full bg-black/60 border border-esports-lightPurple rounded px-2 py-1.5 text-white text-sm">
                         <button type="button" onclick="updateSlotRoomIdPass('${esc(r.code)}', ${i + 1})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg">UPDATE</button>
