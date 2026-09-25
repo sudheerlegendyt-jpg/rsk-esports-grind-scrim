@@ -736,6 +736,7 @@
                     <button type="button" onclick="saveMatchResultPc()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">ADD / REPLACE .PC RESULT</button>
                     <button type="button" onclick="saveMatchResultImage()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">UPLOAD RESULT PHOTO</button>
                     <button type="button" onclick="saveResultCodeOnly()" class="w-full bg-esports-yellow hover:bg-amber-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">ADD CODE ONLY</button>
+                    <button type="button" onclick="updateResultCodeOnly()" class="w-full bg-sky-500 hover:bg-sky-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">UPDATE CODE ONLY</button>
                 </div>
 
                 <!-- ADMIN PREVIEW BEFORE FINAL SAVE -->
@@ -2511,6 +2512,8 @@
             } catch (err) { console.error('Admin result load failed:', err); }
         }
 
+        let adminResultCodeEditKey = '';
+
         async function saveResultCodeOnly() {
             if (!slRequireAdmin()) return;
             const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1';
@@ -2526,10 +2529,55 @@
                 const existingResult=await rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(code).once('value');
                 if(existingResult.exists())return alert('Ye secret code already result ke saath use ho raha hai.');
                 await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+code).set({code,lobby,slot,date,createdAt:Date.now()});
+                adminResultCodeEditKey='';
                 renderAdminResultCodesManager();
                 document.getElementById('adminResultCodeInput').value='';
                 alert('Result code add ho gaya. Abhi RESULT upload nahi hua hai. Viewer ko RESULT COMING SOON dikhega.');
             } catch(err) { console.error('Result code save failed:',err); alert('Code save nahi ho paya: '+(err.message||err)); }
+        }
+
+        async function editResultCodeOnly(code) {
+            if (!slRequireAdmin()) return;
+            const c=slNormCode(code);
+            if(!c || !slFbOk()) return;
+            try {
+                const snap=await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+c).once('value');
+                const r=snap.val();
+                if(!r)return alert('Result code nahi mila.');
+                document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';
+                document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';
+                document.getElementById('adminResultDateInput').value=r.date||'';
+                document.getElementById('adminResultCodeInput').value=r.code||'';
+                adminResultCodeEditKey=c;
+                document.getElementById('adminResultCodeInput').focus();
+                alert('EDIT mode on hai. Code/details change karke UPDATE CODE ONLY dabayein.');
+            } catch(err) { alert('Code edit load nahi ho paya: '+(err.message||err)); }
+        }
+
+        async function updateResultCodeOnly() {
+            if (!slRequireAdmin()) return;
+            if(!adminResultCodeEditKey)return alert('Pehle RESULT CODES list me EDIT dabayein.');
+            const oldCode=slNormCode(adminResultCodeEditKey);
+            const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1';
+            const slot=document.getElementById('adminResultSlotSelect')?.value||'';
+            const date=document.getElementById('adminResultDateInput')?.value||'';
+            const newCode=slNormCode(document.getElementById('adminResultCodeInput')?.value);
+            if(!date)return alert('Kripya date select karein!');
+            if(!slValidCode(newCode))return alert('Result secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
+            if(!slFbOk())return alert('Realtime database connect nahi hai. Internet check karein.');
+            try {
+                if(newCode!==oldCode){
+                    const duplicate=await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+newCode).once('value');
+                    if(duplicate.exists())return alert('Naya secret code pehle se added hai. Alag code use karein.');
+                    const existingResult=await rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(newCode).once('value');
+                    if(existingResult.exists())return alert('Naya secret code already result ke saath use ho raha hai.');
+                }
+                await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+newCode).set({code:newCode,lobby,slot,date,createdAt:Date.now()});
+                if(newCode!==oldCode) await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+oldCode).remove();
+                adminResultCodeEditKey='';
+                renderAdminResultCodesManager();
+                alert('Result code/details UPDATE ho gaye.');
+            } catch(err) { console.error('Result code update failed:',err); alert('Code update nahi ho paya: '+(err.message||err)); }
         }
 
         async function removeResultCodeOnlyFromFirebase(code) {
@@ -2552,7 +2600,10 @@
                 const snap=await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
                 const data=snap.val()||{};
                 const items=Object.values(data).filter(x=>x&&x.code).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0));
-                box.innerHTML=items.length?items.map(r=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot||'')}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date||'')}</p><p class="text-[10px] font-bold text-amber-300">CODE: ${esc(r.code)}</p><p class="text-[10px] text-gray-400">RESULT: COMING SOON / NOT UPLOADED</p></div><button type="button" onclick="deleteResultCodeOnly('${esc(r.code)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div>`).join(''):'<p class="text-xs text-gray-400">Abhi koi code-only result code added nahi hai.</p>';
+                box.innerHTML=items.length?items.map(r=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot||'')}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date||'')}</p><p class="text-[10px] font-bold text-amber-300">CODE: ${esc(r.code)}</p><p class="text-[10px] text-gray-400">RESULT: COMING SOON / NOT UPLOADED</p></div><div class="flex flex-col gap-2">
+<button type="button" onclick="editResultCodeOnly('${esc(r.code)}')" class="bg-sky-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT</button>
+<button type="button" onclick="deleteResultCodeOnly('${esc(r.code)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button>
+</div></div>`).join(''):'<p class="text-xs text-gray-400">Abhi koi code-only result code added nahi hai.</p>';
             } catch(err) { console.error('Result code manager load failed:',err); }
         }
 
