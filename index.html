@@ -1048,22 +1048,14 @@
                 rskFirebaseDb = firebase.database();
                 rskFirebaseReady = true;
 
-                // Real-time listener: keeps BOTH .pc and photo results in sync for every viewer.
-                rskFirebaseDb.ref(RSK_RESULTS_PATH).on('value', snapshot => {
-                    const cloud = snapshot.val();
-                    const config = getAppConfig();
-
-                    if (!cloud || typeof cloud !== 'object') {
-                        config.resultsList = [];
-                    } else {
-                        config.resultsList = Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image'));
-                    }
-                    localStorage.setItem('rsk_app_config', JSON.stringify(config));
-                    renderAdminResultsManager();
-                    try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
-                }, error => {
-                    console.error('Firebase results listener error:', error);
-                });
+                // NOTE: Results ab yahan auto-download NAHI hote (pehle yahan poori resultsList
+                // har page load par + har admin update par download hoti thi, jo sabse zyada
+                // download MB use kar rahi thi — kyuki isme .pc tables aur result photos tak
+                // shamil the). Ab results sirf 2 jagah load hote hain:
+                //   1) Viewer jab result ka sahi secret code submit karta hai (submitResultSecretCode)
+                //   2) Admin jab apna Admin Dashboard kholta hai (fetchAllResultsForAdmin)
+                // Slot list / room id / password / IDP time pehle se hi is tarah (code-gated)
+                // load ho rahe the, unme koi change nahi kiya gaya hai.
 
                 // Real-time listener: keeps the notice popup in sync for every viewer.
                 rskFirebaseDb.ref(RSK_NOTICE_PATH).on('value', snapshot => {
@@ -1871,10 +1863,21 @@
             if (!slFbOk()) return rsShowError('Server se connect nahi ho paya. Internet check karke dobara try karein.');
             btn.disabled = true; btn.textContent = 'CHECKING...';
             try {
-                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
+                // Sirf isi code se match karne wala result fetch karo (poori resultsList nahi) —
+                // ".indexOn": "code" rule RSK_RESULTS_PATH par Firebase console me set hona zaroori
+                // hai warna yeh query kaam to karegi lekin bandwidth me poori list hi download hogi.
+                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(code).once('value');
                 const cloud = snap.val() || {};
                 const entry = Object.values(cloud).find(r => r && r.code && slNormCode(r.code) === code && (r.type === 'pc' || r.type === 'image'));
                 if (!entry) { rsShowError('Invalid secret code! Sahi code daalein.'); return; }
+                // Is matched result ko local config me save karo taaki niche date/slot/lobby
+                // dropdown wale functions (jo getAppConfig().resultsList padhte hain) ise use kar sakein.
+                {
+                    const cfg = getAppConfig();
+                    cfg.resultsList = (cfg.resultsList || []).filter(r => r && r.id !== entry.id);
+                    cfg.resultsList.push(entry);
+                    localStorage.setItem('rsk_app_config', JSON.stringify(cfg));
+                }
                 rsUnlockedGroup = { slot: entry.slot, lobby: entry.lobby || 'L1', date: entry.date };
                 document.getElementById('resultLobbySelect').value = entry.lobby || 'L1';
                 document.getElementById('resultTimeSelect').value = entry.slot;
@@ -2141,12 +2144,31 @@
             slShowAdminAuthModal();
         }
 
+        // Admin dashboard khulte waqt (login ke baad) EK BAAR poori resultsList fetch karta hai,
+        // taaki "MANAGED UPLOADED RESULTS LIST" me sab results dikhein. Yeh live listener nahi
+        // hai (permanently sync nahi karta), isliye normal visitors ke liye koi extra download
+        // nahi hota — sirf jab admin khud dashboard kholta hai tab yeh chalta hai.
+        async function fetchAllResultsForAdmin() {
+            if (!slFbOk()) return;
+            try {
+                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
+                const cloud = snap.val();
+                const config = getAppConfig();
+                config.resultsList = (!cloud || typeof cloud !== 'object') ? [] : Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image'));
+                localStorage.setItem('rsk_app_config', JSON.stringify(config));
+                renderAdminResultsManager();
+            } catch (error) {
+                console.error('Admin results fetch failed:', error);
+            }
+        }
+
         function openAdminDashboard() {
             requestNotificationPermission();
             loadAdminFormValues();
             renderAdminPoolEditor();
             renderBookedSlotsTable();
             renderAdminResultsManager();
+            fetchAllResultsForAdmin();
             adminSlotAuthThenStart();
             renderAdminRank1Announcements();
             checkAdminNotificationAlert();
