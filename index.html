@@ -1858,7 +1858,7 @@
         
         function renderResultTable(res){
             // Ensure rows are sorted by points and strictly sliced to only Rank 1 through Rank 8
-            const sortedRows = [...(res.rows || [])].sort((a,b) => (Number(b.total)||0) - (Number(a.total)||0) || (Number(b.win)||0) - (Number(a.win)||0) || (Number(b.kills)||0) - (Number(a.kills)||0) || (Number(b.pos)||0) - (Number(a.pos)||0));
+            const sortedRows = [...(res.rows || [])].sort((a,b) => (Number(b.total)||0) - (Number(a.total)||0) || (Number(b.win)||0) - (Number(a.win)||0) || (Number(b.pos)||0) - (Number(a.pos)||0) || (Number(b.kills)||0) - (Number(a.kills)||0));
             const top8Rows = sortedRows.slice(0, 8);
 
             return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3 text-left">
@@ -2190,7 +2190,7 @@
         }
 
         function getPlacementPoints(p){return ({1:10,2:6,3:5,4:4,5:3,6:2,7:1,8:1})[Number(p)]||0;}
-        function parsePcResultFile(text){const i=text.indexOf('{');if(i<0)throw Error('Invalid .pc result file.');const d=JSON.parse(text.slice(i)), md=Array.isArray(d.matchData)?d.matchData:[], mdf=Array.isArray(d.matchDataFlatten)?d.matchDataFlatten:[];const teams={};if(md.length){md.forEach(x=>{const n=String(x.teamName||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const p=Number(x.position)||0,k=Number(x.kills)||0;if(p===1)r.win++;r.pos+=getPlacementPoints(p);r.kills+=k;});}else if(mdf.length){mdf.forEach(x=>{const n=String(x.name||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const pl=Number(x.placement)||0,pts=Number(x.position)||0,k=Number(x.kills)||0;if(pl===1)r.win++;r.pos+=pts;r.kills+=k;});}else if(Array.isArray(d.teamEntities)&&d.teamEntities.length){d.teamEntities.forEach(x=>{const n=String(x.name||'').trim();if(n&&!teams[n])teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0};});}else{throw Error('Is .pc file me team data nahi mila.');}const rows=Object.values(teams).map(r=>{r.total=r.pos+r.kills;return r;}).sort((a,b)=>b.total-a.total||b.win-a.win||b.kills-a.kills||b.pos-a.pos||a.teamName.localeCompare(b.teamName));return {rows,tournamentName:d?.tournament?.name||d?.eventDetails?.primaryKey||'',sourceEvent:d?.eventDetails?.eventName||''};}
+        function parsePcResultFile(text){const i=text.indexOf('{');if(i<0)throw Error('Invalid .pc result file.');const d=JSON.parse(text.slice(i)), md=Array.isArray(d.matchData)?d.matchData:[], mdf=Array.isArray(d.matchDataFlatten)?d.matchDataFlatten:[];const teams={};if(md.length){md.forEach(x=>{const n=String(x.teamName||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const p=Number(x.position)||0,k=Number(x.kills)||0;if(p===1)r.win++;r.pos+=getPlacementPoints(p);r.kills+=k;});}else if(mdf.length){mdf.forEach(x=>{const n=String(x.name||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const pl=Number(x.placement)||0,pts=Number(x.position)||0,k=Number(x.kills)||0;if(pl===1)r.win++;r.pos+=pts;r.kills+=k;});}else if(Array.isArray(d.teamEntities)&&d.teamEntities.length){d.teamEntities.forEach(x=>{const n=String(x.name||'').trim();if(n&&!teams[n])teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0};});}else{throw Error('Is .pc file me team data nahi mila.');}const rows=Object.values(teams).map(r=>{r.total=r.pos+r.kills;return r;}).sort((a,b)=>b.total-a.total||b.win-a.win||b.pos-a.pos||b.kills-a.kills||a.teamName.localeCompare(b.teamName));return {rows,tournamentName:d?.tournament?.name||d?.eventDetails?.primaryKey||'',sourceEvent:d?.eventDetails?.eventName||''};}
         let pendingPcResults=[];
         let pendingImageResults=[];
 
@@ -2237,7 +2237,7 @@
             if(field==='teamName')row.teamName=value;
             else row[field]=Math.max(0,Number(value)||0);
             row.total=(Number(row.pos)||0)+(Number(row.kills)||0);
-            pendingPcResults[pi].rows.sort((a,b)=>Number(b.total||0)-Number(a.total||0)||String(a.teamName||'').localeCompare(String(b.teamName||'')));
+            pendingPcResults[pi].rows.sort((a,b)=>(Number(b.total)||0)-(Number(a.total)||0)||(Number(b.win)||0)-(Number(a.win)||0)||(Number(b.pos)||0)-(Number(a.pos)||0)||(Number(b.kills)||0)-(Number(a.kills)||0)||String(a.teamName||'').localeCompare(String(b.teamName||'')));
             renderPendingResultPreview();
         }
 
