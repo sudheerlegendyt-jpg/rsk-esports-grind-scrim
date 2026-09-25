@@ -1855,7 +1855,73 @@
            keeps seeing it until admin removes the code or deletes
            that result. */
         let rsUnlockedGroup = null;
-         let rsViewerResults = [];
+        let rsViewerResults = [];
+        let rsLiveCode = '';
+        let rsLiveCodeRef = null;
+        let rsLiveResultsRef = null;
+
+        function rsStopLiveResultWatch() {
+            try {
+                if (rsLiveCodeRef) rsLiveCodeRef.off('value');
+                if (rsLiveResultsRef) rsLiveResultsRef.off('value');
+            } catch (_) {}
+            rsLiveCodeRef = null;
+            rsLiveResultsRef = null;
+            rsLiveCode = '';
+        }
+
+        function rsApplyLiveResultData(code, codeEntry, cloud) {
+            if (code !== rsLiveCode) return;
+            const nextResults = Object.values(cloud || {}).filter(r => r && (r.type === 'pc' || r.type === 'image') && slNormCode(r.code) === code);
+
+            // Important: only upgrade an already-open RESULT COMING SOON screen.
+            // If a result is already open and admin deletes it, do not force-close it.
+            if (!currentResultSlides.length && nextResults.length) {
+                rsViewerResults = nextResults;
+                const entry = nextResults[0] || codeEntry || {};
+                rsUnlockedGroup = { slot: entry.slot || '1-3 PM', lobby: entry.lobby || 'L1', date: entry.date || '' };
+                const lobbyEl = document.getElementById('resultLobbySelect');
+                const timeEl = document.getElementById('resultTimeSelect');
+                const slotEl = document.getElementById('resultGroupSlotDisplay');
+                const groupEl = document.getElementById('resultGroupLobbyDisplay');
+                if (lobbyEl) lobbyEl.value = entry.lobby || 'L1';
+                if (timeEl) timeEl.value = entry.slot || '1-3 PM';
+                if (slotEl) slotEl.textContent = entry.slot || '';
+                if (groupEl) groupEl.textContent = (entry.lobby || 'L1') + (entry.date ? ' • ' + entry.date : '');
+                updateResultDateOptions(entry.date || '');
+                displaySelectedResult();
+            } else if (!nextResults.length) {
+                // Admin deleted the result: remove it from the already-open viewer
+                // in real time and show RESULT COMING SOON immediately.
+                rsViewerResults = [];
+                currentResultSlides = [];
+                currentResultSlideIndex = 0;
+                displaySelectedResult();
+            } else {
+                rsViewerResults = nextResults;
+            }
+        }
+
+        function rsStartLiveResultWatch(code) {
+            rsStopLiveResultWatch();
+            if (!slFbOk() || !slValidCode(code)) return;
+            rsLiveCode = code;
+
+            rsLiveCodeRef = rskFirebaseDb.ref(RSK_RESULT_CODES_PATH + '/' + code);
+            rsLiveCodeRef.on('value', snap => {
+                const entry = snap.val() || null;
+                // A code-only entry being removed is not itself a reason to hide an
+                // already-open result. Result data is watched separately below.
+                if (entry) {
+                    rsApplyLiveResultData(code, entry, null);
+                }
+            }, err => console.error('Live result code listener failed:', err));
+
+            rsLiveResultsRef = rskFirebaseDb.ref(RSK_RESULTS_PATH).orderByChild('code').equalTo(code);
+            rsLiveResultsRef.on('value', snap => {
+                rsApplyLiveResultData(code, null, snap.val() || {});
+            }, err => console.error('Live result listener failed:', err));
+        }
 
         function rsShowStep(step) {
             document.getElementById('resultCodeStep').classList.toggle('hidden', step !== 'code');
@@ -1868,7 +1934,11 @@
             el.classList.toggle('hidden', !msg);
         }
         function rsResetToCodeStep() {
+            rsStopLiveResultWatch();
             rsUnlockedGroup = null;
+            rsViewerResults = [];
+            currentResultSlides = [];
+            currentResultSlideIndex = 0;
             const inp = document.getElementById('resultSecretCodeInput');
             if (inp) inp.value = '';
             rsShowError('');
@@ -1902,6 +1972,7 @@
                 rsShowStep('group');
                 updateResultDateOptions(entry.date || '');
                 displaySelectedResult();
+                rsStartLiveResultWatch(code);
             } catch (err) {
                 console.error('Result secret code check failed:', err);
                 rsShowError('Code check nahi ho paya. Thodi der baad dobara try karein.');
@@ -2654,8 +2725,23 @@
                 c.resultsList.splice(i, 1);
                 saveAppConfig(c);
                 renderAdminResultsManager();
-                
-                // Sync complete removal to Firebase so no one can see it (works for .pc AND photo results)
+
+                // Result delete hone ke baad same code ko CODE ONLY me wapas rakho,
+                // taaki viewer dobara wahi code dale to RESULT COMING SOON dikhe.
+                if (r.code && slValidCode(slNormCode(r.code)) && rskFirebaseReady && rskFirebaseDb) {
+                    const deletedCode = slNormCode(r.code);
+                    rskFirebaseDb.ref(RSK_RESULT_CODES_PATH + '/' + deletedCode).set({
+                        code: deletedCode,
+                        lobby: r.lobby || 'L1',
+                        slot: r.slot || '',
+                        date: r.date || '',
+                        createdAt: Date.now()
+                    }).catch(err => console.error('Result code restore failed:', err));
+                }
+
+                // Sync complete removal to Firebase so no one can see the deleted result.
+                // Existing viewers are watched by the Firebase result listener, so a deleted
+                // result is removed from an already-open viewer in real time.
                 if (rskFirebaseReady && rskFirebaseDb && deletedId) {
                     rskFirebaseDb.ref(RSK_RESULTS_PATH + '/' + deletedId).remove().catch(err => {
                         console.error('Firebase single result remove failed, doing full set sync:', err);
@@ -2664,14 +2750,8 @@
                 } else {
                     syncResultsToFirebaseWithoutBlocking(c);
                 }
-                
-                // Refresh client view immediately so it disappears for everyone on page
-                try {
-                    updateResultDateOptions();
-                    displaySelectedResult();
-                } catch (_) {}
-                
-                alert('Result successfully delete ho gaya hai. Ab ye kisi ko nahi dikhega.');
+
+                alert('Result successfully delete ho gaya hai. Viewer ke open result par bhi real-time me RESULT COMING SOON dikh jayega.');
             }
         }
 
