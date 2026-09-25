@@ -2190,7 +2190,7 @@
         }
 
         function getPlacementPoints(p){return ({1:10,2:6,3:5,4:4,5:3,6:2,7:1,8:1})[Number(p)]||0;}
-        function parsePcResultFile(text){const i=text.indexOf('{');if(i<0)throw Error('Invalid .pc result file.');const d=JSON.parse(text.slice(i)), md=Array.isArray(d.matchData)?d.matchData:[];const teams={};if(md.length){md.forEach(x=>{const n=String(x.teamName||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const p=Number(x.position)||0,k=Number(x.kills)||0;if(p===1)r.win++;r.pos+=getPlacementPoints(p);r.kills+=k;});}else if(Array.isArray(d.teamEntities)&&d.teamEntities.length){d.teamEntities.forEach(x=>{const n=String(x.name||'').trim();if(n&&!teams[n])teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0};});}else{throw Error('Is .pc file me team data nahi mila.');}const rows=Object.values(teams).map(r=>{r.total=r.pos+r.kills;return r;}).sort((a,b)=>b.total-a.total||b.win-a.win||b.kills-a.kills||b.pos-a.pos||a.teamName.localeCompare(b.teamName));return {rows,tournamentName:d?.tournament?.name||d?.eventDetails?.primaryKey||'',sourceEvent:d?.eventDetails?.eventName||''};}
+        function parsePcResultFile(text){const i=text.indexOf('{');if(i<0)throw Error('Invalid .pc result file.');const d=JSON.parse(text.slice(i)), md=Array.isArray(d.matchData)?d.matchData:[], mdf=Array.isArray(d.matchDataFlatten)?d.matchDataFlatten:[];const teams={};if(md.length){md.forEach(x=>{const n=String(x.teamName||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const p=Number(x.position)||0,k=Number(x.kills)||0;if(p===1)r.win++;r.pos+=getPlacementPoints(p);r.kills+=k;});}else if(mdf.length){mdf.forEach(x=>{const n=String(x.name||'').trim();if(!n)return;const r=teams[n]||(teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0});r.mp++;const pl=Number(x.placement)||0,pts=Number(x.position)||0,k=Number(x.kills)||0;if(pl===1)r.win++;r.pos+=pts;r.kills+=k;});}else if(Array.isArray(d.teamEntities)&&d.teamEntities.length){d.teamEntities.forEach(x=>{const n=String(x.name||'').trim();if(n&&!teams[n])teams[n]={teamName:n,mp:0,win:0,pos:0,kills:0,total:0};});}else{throw Error('Is .pc file me team data nahi mila.');}const rows=Object.values(teams).map(r=>{r.total=r.pos+r.kills;return r;}).sort((a,b)=>b.total-a.total||b.win-a.win||b.kills-a.kills||b.pos-a.pos||a.teamName.localeCompare(b.teamName));return {rows,tournamentName:d?.tournament?.name||d?.eventDetails?.primaryKey||'',sourceEvent:d?.eventDetails?.eventName||''};}
         let pendingPcResults=[];
         let pendingImageResults=[];
 
@@ -3072,6 +3072,8 @@
             const add = n => { n = String(n || '').trim(); if (n && !names.includes(n)) names.push(n); };
             if (Array.isArray(d.teamEntities)) d.teamEntities.forEach(x => add(x && (x.name || x.teamName)));
             if (!names.length && Array.isArray(d.matchData)) d.matchData.forEach(x => add(x && x.teamName));
+            if (!names.length && Array.isArray(d.matchDataFlatten)) d.matchDataFlatten.forEach(x => add(x && x.name));
+            if (!names.length && Array.isArray(d.flattenTeams)) d.flattenTeams.forEach(x => add(x && x.name));
             if (!names.length) throw Error('Is .pc file me team data nahi mila.');
             return { rows: names.map(n => ({ teamName: n })), tournamentName: d?.tournament?.name || d?.eventDetails?.primaryKey || '', sourceEvent: d?.eventDetails?.eventName || '' };
         }
