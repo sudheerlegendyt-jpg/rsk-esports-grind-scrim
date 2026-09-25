@@ -3419,15 +3419,38 @@
             let merged;
             if (oldEntry) {
                 // code badla gaya: purane code ke saare matches naye code par shift karo
-                const ms = slRoomMatches(oldEntry); ms[match - 1] = { roomId, roomPass, idpTime, startTime };
+                const ms = slRoomMatches(oldEntry);
+                for (let i = 0; i < 3; i++) {
+                    const d = slDefaultMatchTimes(slot, i + 1);
+                    ms[i] = {
+                        roomId: ms[i]?.roomId || '',
+                        roomPass: ms[i]?.roomPass || '',
+                        idpTime: ms[i]?.idpTime || d.idpTime,
+                        startTime: ms[i]?.startTime || d.startTime
+                    };
+                }
+                // Current match ki manually entered values ko preserve/update karo.
+                ms[match - 1] = { roomId, roomPass, idpTime, startTime };
                 const matches = {}; ms.forEach((x, i) => { matches['m' + (i + 1)] = x; });
                 merged = { code, lobby, slot, matches, updatedAt: now };
                 updates[code] = merged; updates[oldEntry.code] = null;
             } else {
                 const cur = adminSlotRooms[code] || {};
+                const existingMatches = { ...(cur.matches || {}) };
+                for (let i = 0; i < 3; i++) {
+                    const d = slDefaultMatchTimes(slot, i + 1);
+                    const oldM = existingMatches['m' + (i + 1)] || {};
+                    existingMatches['m' + (i + 1)] = {
+                        roomId: oldM.roomId || '',
+                        roomPass: oldM.roomPass || '',
+                        idpTime: oldM.idpTime || d.idpTime,
+                        startTime: oldM.startTime || d.startTime
+                    };
+                }
+                existingMatches['m' + match] = { roomId, roomPass, idpTime, startTime };
                 updates[code + '/code'] = code; updates[code + '/lobby'] = lobby; updates[code + '/slot'] = slot; updates[code + '/updatedAt'] = now;
-                updates[code + '/matches/m' + match] = { roomId, roomPass, idpTime, startTime };
-                merged = { ...cur, code, lobby, slot, updatedAt: now, matches: { ...(cur.matches || {}), ['m' + match]: { roomId, roomPass, idpTime, startTime } } };
+                Object.keys(existingMatches).forEach(k => { updates[code + '/matches/' + k] = existingMatches[k]; });
+                merged = { ...cur, code, lobby, slot, updatedAt: now, matches: existingMatches };
             }
             try {
                 await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).update(updates);
