@@ -1022,6 +1022,7 @@
         let rskFirebaseDb = null;
         let rskFirebaseReady = false;
         const RSK_RESULTS_PATH = 'rsk_esports_results';
+        const RSK_NOTICE_PATH = 'rsk_esports_notice';
 
         function initRskFirebase() {
             try {
@@ -1045,6 +1046,19 @@
                     try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
                 }, error => {
                     console.error('Firebase results listener error:', error);
+                });
+
+                // Real-time listener: keeps the notice popup in sync for every viewer.
+                rskFirebaseDb.ref(RSK_NOTICE_PATH).on('value', snapshot => {
+                    const cloud = snapshot.val();
+                    const config = getAppConfig();
+                    config.noticeText = (cloud && cloud.noticeText) || "";
+                    config.noticeImage = (cloud && cloud.noticeImage) || "";
+                    config.showTopBannerNotice = !!(cloud && cloud.showTopBannerNotice);
+                    localStorage.setItem('rsk_app_config', JSON.stringify(config));
+                    renderMainNoticePopup();
+                }, error => {
+                    console.error('Firebase notice listener error:', error);
                 });
             } catch (error) {
                 rskFirebaseReady = false;
@@ -1072,6 +1086,22 @@
             syncResultsToFirebase(config).then(ok => {
                 if (!ok && rskFirebaseReady) console.warn('Could not sync results to Firebase.');
             });
+        }
+
+        async function syncNoticeToFirebase(config) {
+            if (!rskFirebaseReady || !rskFirebaseDb) return false;
+            const payload = {
+                noticeText: config.noticeText || "",
+                noticeImage: config.noticeImage || "",
+                showTopBannerNotice: !!config.showTopBannerNotice
+            };
+            try {
+                await rskFirebaseDb.ref(RSK_NOTICE_PATH).set(payload);
+                return true;
+            } catch (error) {
+                console.error('Firebase notice sync failed:', error);
+                return false;
+            }
         }
 
         async function telegramRequest(method, options = {}) {
@@ -2645,6 +2675,11 @@
                 config.noticeImage = "";
                 config.showTopBannerNotice = false;
                 saveAppConfig(config);
+                if (slFbOk()) {
+                    syncNoticeToFirebase(config).then(ok => { if (!ok) alert('Local save ho gaya, lekin database sync nahi ho paya. Internet check karein.'); });
+                } else {
+                    alert('Realtime database connect nahi hai. Internet check karein.');
+                }
                 alert('Notice Removed!');
                 return;
             }
@@ -2656,17 +2691,25 @@
             config.noticeText = text;
             config.showTopBannerNotice = true;
 
+            const publishNow = () => {
+                if (!slFbOk()) { alert('Notice local save ho gaya, lekin realtime database connect nahi hai. Internet check karke dobara try karein.'); return; }
+                syncNoticeToFirebase(config).then(ok => {
+                    if (ok) alert(file ? 'Notice with image published!' : 'Notice text published!');
+                    else alert('Local save ho gaya, lekin database sync nahi ho paya. Internet check karein.');
+                });
+            };
+
             if(file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     config.noticeImage = e.target.result;
                     saveAppConfig(config);
-                    alert('Notice with image published!');
+                    publishNow();
                 };
                 reader.readAsDataURL(file);
             } else {
                 saveAppConfig(config);
-                alert('Notice text published!');
+                publishNow();
             }
         }
 
@@ -2865,10 +2908,9 @@
             else if (!lists.length) listHtml = '<p class="text-center text-amber-400 font-teko text-3xl tracking-widest animate-pulse py-4"><i class="fa-solid fa-hourglass-half mr-2"></i>SLOT LIST COMING SOON...</p>';
             else listHtml = lists.map(slRenderListCard).join('');
             box.innerHTML = `
-                <div class="bg-black/70 border-2 border-esports-yellow rounded-xl p-4 text-center">
-                    <p class="text-[10px] font-rajdhani font-bold text-gray-400 uppercase tracking-widest mb-1">GROUP NAME</p>
-                    <p class="font-teko text-4xl font-bold text-esports-yellow leading-none">${esc(r.slot)}</p>
-                    <p class="font-teko text-3xl font-bold text-white leading-none mt-1">${esc(r.lobby)}</p>
+                <div class="bg-black/70 border-2 border-esports-yellow rounded-xl px-3 py-2 text-center">
+                    <p class="text-[9px] font-rajdhani font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">GROUP NAME</p>
+                    <p class="font-teko text-2xl font-bold leading-none"><span class="text-esports-yellow">${esc(r.slot)}</span> <span class="text-white">• ${esc(r.lobby)}</span></p>
                 </div>
                 <div>
                     <p class="text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-2"><i class="fa-solid fa-clipboard-list mr-1"></i>SLOT LIST</p>
