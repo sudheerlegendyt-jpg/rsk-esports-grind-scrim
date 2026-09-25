@@ -336,55 +336,69 @@
 
     <!-- MODAL: MATCH RESULTS VIEW -->
     <div id="resultModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-center">
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-center overflow-y-auto" style="max-height:calc(100vh - 24px)">
             <button onclick="closeResultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
             <i class="fa-solid fa-trophy text-4xl text-esports-yellow mb-2"></i>
             <h3 class="font-teko text-3xl font-bold text-white leading-none">TOURNAMENT RESULTS</h3>
-            <p class="text-xs text-gray-400 font-rajdhani mb-4">Select match time slot to view official point table</p>
+            <p class="text-xs text-gray-400 font-rajdhani mb-4">Apna secret code daalein aur apne match ka point table dekhein</p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-left">
-                <div>
-                    <label class="block text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-1">Choose Lobby:</label>
-                    <select id="resultLobbySelect" onchange="handleResultFilterChange()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
-                        <option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-1">Choose Match Time Slot:</label>
-                    <select id="resultTimeSelect" onchange="handleResultFilterChange()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
-                        <option value="1-3 PM">1:00 PM - 3:00 PM</option>
-                        <option value="3-5 PM">3:00 PM - 5:00 PM</option>
-                        <option value="7-9 PM">7:00 PM - 9:00 PM</option>
-                        <option value="9-11 PM">9:00 PM - 11:00 PM</option>
-                        <option value="11-1 AM">11:00 PM - 1:00 AM</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-1">Choose Match Date:</label>
-                    <select id="resultDateSelect" onchange="displaySelectedResult()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
-                        <option value="">Select date</option>
-                    </select>
-                </div>
+            <!-- STEP 1: SECRET CODE ENTRY (same code as GET IDP / SLOT LIST) -->
+            <div id="resultCodeStep" class="text-left">
+                <label class="block text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-1">Secret Code *</label>
+                <input type="text" id="resultSecretCodeInput" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="Enter your secret code" onkeydown="if(event.key==='Enter'){submitResultSecretCode();}" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold uppercase focus:border-esports-yellow focus:outline-none">
+                <p id="resultCodeError" class="hidden mt-2 text-xs font-rajdhani font-bold text-red-400"></p>
+                <button type="button" id="resultCodeSubmitBtn" onclick="submitResultSecretCode()" class="w-full mt-4 bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl shadow-lg">SUBMIT CODE</button>
             </div>
 
-            <!-- RESULT DISPLAY AREA (MULTIPLE DATED + MULTIPLE PHOTO SUPPORT) -->
-            <div id="resultDisplayContainer" class="bg-black/60 border border-esports-lightPurple p-4 rounded-xl min-h-[220px] max-h-[60vh] overflow-y-auto space-y-4">
-                <p id="resultComingSoon" class="text-amber-400 font-teko text-3xl tracking-widest animate-pulse py-8">
-                    <i class="fa-solid fa-hourglass-half mr-2"></i>RESULT COMING SOON...
-                </p>
-                <div id="resultList" class="space-y-4 hidden"></div>
-            </div>
+            <!-- STEP 2: RESULT FOR THAT CODE'S GROUP ONLY (original result UI/process untouched below) -->
+            <div id="resultGroupStep" class="hidden text-left">
+                <div class="bg-black/70 border-2 border-esports-yellow rounded-xl px-3 py-2 text-center mb-4">
+                    <p class="text-[9px] font-rajdhani font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">GROUP NAME</p>
+                    <p class="font-teko text-2xl font-bold leading-none"><span id="resultGroupSlotDisplay" class="text-esports-yellow"></span> <span class="text-white">• <span id="resultGroupLobbyDisplay"></span></span></p>
+                </div>
 
-            <div class="flex gap-3 mt-5">
-                <button onclick="handleGetPrizePoolClick()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl shadow-lg">
-                    GET PRIZE POOL
-                </button>
-                <button onclick="closeResultModal()" class="w-full bg-esports-yellow text-black font-teko text-2xl font-bold py-2 rounded-xl hover:bg-amber-400">
-                    CLOSE
-                </button>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-left">
+                    <div class="hidden">
+                        <select id="resultLobbySelect" onchange="handleResultFilterChange()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
+                            <option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option>
+                        </select>
+                    </div>
+                    <div class="hidden">
+                        <select id="resultTimeSelect" onchange="handleResultFilterChange()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
+                            <option value="1-3 PM">1:00 PM - 3:00 PM</option>
+                            <option value="3-5 PM">3:00 PM - 5:00 PM</option>
+                            <option value="7-9 PM">7:00 PM - 9:00 PM</option>
+                            <option value="9-11 PM">9:00 PM - 11:00 PM</option>
+                            <option value="11-1 AM">11:00 PM - 1:00 AM</option>
+                        </select>
+                    </div>
+                    <div class="hidden">
+                        <select id="resultDateSelect" onchange="displaySelectedResult()" class="w-full bg-black/60 border border-esports-lightPurple text-white py-2.5 px-3 rounded-xl font-rajdhani font-bold focus:border-esports-yellow focus:outline-none">
+                            <option value="">Select date</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- RESULT DISPLAY AREA (MULTIPLE DATED + MULTIPLE PHOTO SUPPORT) -->
+                <div id="resultDisplayContainer" class="bg-black/60 border border-esports-lightPurple p-4 rounded-xl min-h-[220px] max-h-[60vh] overflow-y-auto space-y-4">
+                    <p id="resultComingSoon" class="text-amber-400 font-teko text-3xl tracking-widest animate-pulse py-8">
+                        <i class="fa-solid fa-hourglass-half mr-2"></i>RESULT COMING SOON...
+                    </p>
+                    <div id="resultList" class="space-y-4 hidden"></div>
+                </div>
+
+                <div class="flex gap-3 mt-5">
+                    <button onclick="handleGetPrizePoolClick()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl shadow-lg">
+                        GET PRIZE POOL
+                    </button>
+                    <button onclick="closeResultModal()" class="w-full bg-esports-yellow text-black font-teko text-2xl font-bold py-2 rounded-xl hover:bg-amber-400">
+                        CLOSE
+                    </button>
+                </div>
+                <button type="button" onclick="rsChangeCode()" class="w-full mt-3 bg-esports-purple border border-esports-lightPurple text-white font-rajdhani font-bold py-2 rounded-xl">CHANGE CODE</button>
             </div>
         </div>
     </div>
@@ -700,6 +714,9 @@
                         <select id="adminResultSlotSelect" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"><option value="1-3 PM">1:00 PM - 3:00 PM</option><option value="3-5 PM">3:00 PM - 5:00 PM</option><option value="7-9 PM">7:00 PM - 9:00 PM</option><option value="9-11 PM">9:00 PM - 11:00 PM</option><option value="11-1 AM">11:00 PM - 1:00 AM</option></select></div>
                     <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Match Date *</label>
                         <input type="date" id="adminResultDateInput" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani"></div>
+                    <div><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Result Secret Code *</label>
+                        <input type="text" id="adminResultCodeInput" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="Code for this date/time" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani font-bold uppercase">
+                        <p class="text-[10px] text-gray-400 mt-1">Viewer isi code se sirf isi date/time/lobby ka result dekh payega.</p></div>
                     <div class="md:col-span-2"><label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Upload .PC Result File(s) *</label>
                         <input type="file" id="adminResultPcInput" accept=".pc,application/octet-stream" multiple onchange="stageResultFiles('pc')" class="w-full text-xs text-gray-300 bg-black/50 p-2 border border-esports-lightPurple rounded-lg font-rajdhani">
                         <button type="button" onclick="document.getElementById('adminResultPcInput').click()" class="mt-2 w-full bg-esports-purple hover:bg-esports-lightPurple border border-esports-yellow text-esports-yellow font-rajdhani font-bold py-2 rounded-lg">
@@ -1812,10 +1829,67 @@
 
         function closeResultModal() {
             document.getElementById('resultModal').classList.add('hidden');
+            rsResetToCodeStep();
         }
 
         let currentResultSlides = [];
         let currentResultSlideIndex = 0;
+
+        /* ---------------- RESULT SECRET-CODE GATE ----------------
+           This is a SEPARATE code system from GET IDP / SLOT LIST.
+           Admin sets a fresh secret code on EACH result upload (per
+           date + time + lobby, in the result upload panel). Viewer
+           entering that exact code sees ONLY that one result — and
+           keeps seeing it until admin removes the code or deletes
+           that result. */
+        let rsUnlockedGroup = null;
+
+        function rsShowStep(step) {
+            document.getElementById('resultCodeStep').classList.toggle('hidden', step !== 'code');
+            document.getElementById('resultGroupStep').classList.toggle('hidden', step !== 'group');
+        }
+        function rsShowError(msg) {
+            const el = document.getElementById('resultCodeError');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.classList.toggle('hidden', !msg);
+        }
+        function rsResetToCodeStep() {
+            rsUnlockedGroup = null;
+            const inp = document.getElementById('resultSecretCodeInput');
+            if (inp) inp.value = '';
+            rsShowError('');
+            rsShowStep('code');
+        }
+        function rsChangeCode() { rsResetToCodeStep(); }
+
+        async function submitResultSecretCode() {
+            const code = slNormCode(document.getElementById('resultSecretCodeInput')?.value);
+            const btn = document.getElementById('resultCodeSubmitBtn');
+            rsShowError('');
+            if (!slValidCode(code)) return rsShowError('Kripya sahi secret code daalein.');
+            if (!slFbOk()) return rsShowError('Server se connect nahi ho paya. Internet check karke dobara try karein.');
+            btn.disabled = true; btn.textContent = 'CHECKING...';
+            try {
+                const snap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
+                const cloud = snap.val() || {};
+                const entry = Object.values(cloud).find(r => r && r.code && slNormCode(r.code) === code && (r.type === 'pc' || r.type === 'image'));
+                if (!entry) { rsShowError('Invalid secret code! Sahi code daalein.'); return; }
+                rsUnlockedGroup = { slot: entry.slot, lobby: entry.lobby || 'L1', date: entry.date };
+                document.getElementById('resultLobbySelect').value = entry.lobby || 'L1';
+                document.getElementById('resultTimeSelect').value = entry.slot;
+                document.getElementById('resultGroupSlotDisplay').textContent = entry.slot;
+                document.getElementById('resultGroupLobbyDisplay').textContent = (entry.lobby || 'L1') + ' • ' + entry.date;
+                rsShowStep('group');
+                updateResultDateOptions(entry.date);
+                displaySelectedResult();
+            } catch (err) {
+                console.error('Result secret code check failed:', err);
+                rsShowError('Code check nahi ho paya. Thodi der baad dobara try karein.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'SUBMIT CODE';
+            }
+        }
 
         function updateResultDateOptions(selectedDate = '') {
             const config=getAppConfig(), time=document.getElementById('resultTimeSelect')?.value||'', lobby=document.getElementById('resultLobbySelect')?.value||'L1', ds=document.getElementById('resultDateSelect');
@@ -1856,8 +1930,7 @@
 
         function openResultModal(){
             document.getElementById('resultModal').classList.remove('hidden');
-            updateResultDateOptions();
-            displaySelectedResult();
+            rsResetToCodeStep();
         }
 
         function handleResultFilterChange(){
@@ -2354,11 +2427,15 @@
         function saveMatchResultPc(){
             if (!slRequireAdmin()) return;
             const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1',slot=document.getElementById('adminResultSlotSelect')?.value||'',date=document.getElementById('adminResultDateInput')?.value||'',replaceId=document.getElementById('adminResultReplaceId')?.value||'';
+            const code=slNormCode(document.getElementById('adminResultCodeInput')?.value);
             if(!date)return alert('Kripya date select karein!');
+            if(!slValidCode(code))return alert('Result secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
             if(!pendingPcResults.length)return alert('Kripya .pc result file choose karein!');
             const c=getAppConfig();c.resultsList=c.resultsList||[];
+            const owner=c.resultsList.find(r=>r&&r.code&&slNormCode(r.code)===code&&r.id!==replaceId);
+            if(owner)return alert(`Ye secret code pehle se ${owner.lobby||'L1'} • ${owner.slot} • ${owner.date} ke result ke liye use ho raha hai. Har date/time ka code alag rakhein.`);
             pendingPcResults.forEach((res,i)=>{
-                const obj={id:replaceId&&pendingPcResults.length===1?replaceId:'res_pc_'+Date.now()+'_'+i,type:'pc',lobby,slot,date,rows:(res.rows||[]),tournamentName:res.tournamentName,sourceEvent:res.sourceEvent,fileName:res.fileName};
+                const obj={id:replaceId&&pendingPcResults.length===1?replaceId:'res_pc_'+Date.now()+'_'+i,type:'pc',lobby,slot,date,code,rows:(res.rows||[]),tournamentName:res.tournamentName,sourceEvent:res.sourceEvent,fileName:res.fileName};
                 const ix=replaceId&&pendingPcResults.length===1?c.resultsList.findIndex(r=>r.id===replaceId):-1;
                 if(ix>=0)c.resultsList[ix]=obj;else c.resultsList.push(obj);
             });
@@ -2368,18 +2445,23 @@
             syncResultsToFirebaseWithoutBlocking(c);
             try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             document.getElementById('adminResultReplaceId').value='';
+            document.getElementById('adminResultCodeInput').value='';
             clearPendingResultPreview();
             alert(`${savedCount} .pc result${savedCount>1?'s':''} saved successfully.`);
         }
 
         function saveMatchResultImage(){
             const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1',slot=document.getElementById('adminResultSlotSelect')?.value||'',date=document.getElementById('adminResultDateInput')?.value||'',replaceId=document.getElementById('adminResultImageReplaceId')?.value||'';
+            const code=slNormCode(document.getElementById('adminResultCodeInput')?.value);
             if(!date)return alert('Kripya date select karein!');
+            if(!slValidCode(code))return alert('Result secret code 3-30 characters ka hona chahiye (sirf A-Z, 0-9, - aur _ allowed).');
             if(!pendingImageResults.length)return alert('Kripya JPG/PNG result photo choose karein!');
             if(!slFbOk())return alert('Realtime database connect nahi hai. Internet check karein.');
             const c=getAppConfig();c.resultsList=c.resultsList||[];
+            const owner=c.resultsList.find(r=>r&&r.code&&slNormCode(r.code)===code&&r.id!==replaceId);
+            if(owner)return alert(`Ye secret code pehle se ${owner.lobby||'L1'} • ${owner.slot} • ${owner.date} ke result ke liye use ho raha hai. Har date/time ka code alag rakhein.`);
             pendingImageResults.forEach((res,i)=>{
-                const obj={id:replaceId&&pendingImageResults.length===1?replaceId:'res_img_'+Date.now()+'_'+i,type:'image',lobby,slot,date,image:res.image,fileName:res.fileName};
+                const obj={id:replaceId&&pendingImageResults.length===1?replaceId:'res_img_'+Date.now()+'_'+i,type:'image',lobby,slot,date,code,image:res.image,fileName:res.fileName};
                 const ix=replaceId&&pendingImageResults.length===1?c.resultsList.findIndex(r=>r.id===replaceId):-1;
                 if(ix>=0)c.resultsList[ix]=obj;else c.resultsList.push(obj);
             });
@@ -2390,13 +2472,25 @@
                 if(!ok){alert('Photo local save ho gaya, lekin database sync nahi ho paya. Internet check karke dobara REPLACE karein.');return;}
                 try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
                 document.getElementById('adminResultImageReplaceId').value='';
+                document.getElementById('adminResultCodeInput').value='';
                 clearPendingResultPreview();
                 alert(`${savedCount} result photo${savedCount>1?'s':''} saved successfully.`);
             });
         }
 
-        function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p></div><div class="flex gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button><button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('');}
-        function prepareReplaceResult(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;clearPendingResultPreview();document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';document.getElementById('adminResultDateInput').value=r.date||'';document.getElementById('adminResultReplaceId').value=r.type==='pc'?r.id:'';document.getElementById('adminResultImageReplaceId').value=r.type==='image'?r.id:'';alert(r.type==='image'?'REPLACE mode on hai. Nayi JPG/PNG photo choose karke pehle ADMIN VIEW/EDIT check karein, phir UPLOAD RESULT PHOTO dabayein.':'REPLACE mode on hai. Nayi .pc file choose karke pehle ADMIN VIEW/EDIT check karein, phir ADD / REPLACE .PC RESULT dabayein.');}
+        function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p><p class="text-[10px] font-bold ${r.code?'text-emerald-400':'text-red-400'}">${r.code?('CODE: '+esc(r.code)):'NO CODE SET (viewer nahi dekh payega)'}</p></div><div class="flex gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button>${r.code?`<button type="button" onclick="removeResultCode(${i})" class="bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE CODE</button>`:''}<button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('');}
+        function prepareReplaceResult(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;clearPendingResultPreview();document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';document.getElementById('adminResultDateInput').value=r.date||'';document.getElementById('adminResultCodeInput').value=r.code||'';document.getElementById('adminResultReplaceId').value=r.type==='pc'?r.id:'';document.getElementById('adminResultImageReplaceId').value=r.type==='image'?r.id:'';alert(r.type==='image'?'REPLACE mode on hai. Nayi JPG/PNG photo choose karke pehle ADMIN VIEW/EDIT check karein, phir UPLOAD RESULT PHOTO dabayein.':'REPLACE mode on hai. Nayi .pc file choose karke pehle ADMIN VIEW/EDIT check karein, phir ADD / REPLACE .PC RESULT dabayein.');}
+
+        function removeResultCode(i){
+            if (!slRequireAdmin()) return;
+            const c=getAppConfig(),r=c.resultsList?.[i];
+            if(!r)return;
+            if(!confirm(`${r.lobby||'L1'} • ${r.slot} • ${r.date} ka secret code REMOVE karna chahte hain? Result data delete nahi hoga, sirf viewer ab is code se result nahi dekh payega.`))return;
+            r.code='';
+            saveAppConfig(c);
+            renderAdminResultsManager();
+            syncResultsToFirebaseWithoutBlocking(c);
+        }
         
         function deleteResultItem(i){
             if (!slRequireAdmin()) return;
