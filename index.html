@@ -1017,7 +1017,7 @@
 
         let rskFirebaseDb = null;
         let rskFirebaseReady = false;
-        const RSK_PC_RESULTS_PATH = 'rsk_esports_results';
+        const RSK_RESULTS_PATH = 'rsk_esports_results';
 
         function initRskFirebase() {
             try {
@@ -1026,24 +1026,21 @@
                 rskFirebaseDb = firebase.database();
                 rskFirebaseReady = true;
 
-                // Real-time listener: updates ONLY .PC entries in local resultsList.
-                rskFirebaseDb.ref(RSK_PC_RESULTS_PATH).on('value', snapshot => {
+                // Real-time listener: keeps BOTH .pc and photo results in sync for every viewer.
+                rskFirebaseDb.ref(RSK_RESULTS_PATH).on('value', snapshot => {
                     const cloud = snapshot.val();
                     const config = getAppConfig();
-                    const localNonPc = (config.resultsList || []).filter(r => r.type !== 'pc');
-                    
+
                     if (!cloud || typeof cloud !== 'object') {
-                        // All cloud .PC entries removed
-                        config.resultsList = localNonPc;
+                        config.resultsList = [];
                     } else {
-                        const cloudPc = Object.values(cloud).filter(r => r && r.type === 'pc');
-                        config.resultsList = localNonPc.concat(cloudPc);
+                        config.resultsList = Object.values(cloud).filter(r => r && (r.type === 'pc' || r.type === 'image'));
                     }
                     localStorage.setItem('rsk_app_config', JSON.stringify(config));
                     renderAdminResultsManager();
                     try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
                 }, error => {
-                    console.error('Firebase .PC results listener error:', error);
+                    console.error('Firebase results listener error:', error);
                 });
             } catch (error) {
                 rskFirebaseReady = false;
@@ -1051,25 +1048,25 @@
             }
         }
 
-        async function syncPcResultsToFirebase(config) {
+        async function syncResultsToFirebase(config) {
             if (!rskFirebaseReady || !rskFirebaseDb) return false;
-            const pcResults = (config.resultsList || []).filter(r => r && r.type === 'pc');
+            const allResults = (config.resultsList || []).filter(r => r && (r.type === 'pc' || r.type === 'image'));
             const payload = {};
-            pcResults.forEach(r => {
+            allResults.forEach(r => {
                 if (r.id) payload[String(r.id)] = r;
             });
             try {
-                await rskFirebaseDb.ref(RSK_PC_RESULTS_PATH).set(payload);
+                await rskFirebaseDb.ref(RSK_RESULTS_PATH).set(payload);
                 return true;
             } catch (error) {
-                console.error('Firebase .PC results sync failed:', error);
+                console.error('Firebase results sync failed:', error);
                 return false;
             }
         }
 
-        function syncPcResultsToFirebaseWithoutBlocking(config) {
-            syncPcResultsToFirebase(config).then(ok => {
-                if (!ok && rskFirebaseReady) console.warn('Could not sync .PC results to Firebase.');
+        function syncResultsToFirebaseWithoutBlocking(config) {
+            syncResultsToFirebase(config).then(ok => {
+                if (!ok && rskFirebaseReady) console.warn('Could not sync results to Firebase.');
             });
         }
 
@@ -2207,15 +2204,39 @@
                         if(type==='pc'){
                             const parsed=parsePcResultFile(e.target.result);
                             target.push({fileName:file.name, rows:parsed.rows, tournamentName:parsed.tournamentName, sourceEvent:parsed.sourceEvent});
+                            done++;
+                            if(done===files.length){
+                                fi.value='';
+                                renderPendingResultPreview();
+                                if(errors.length)alert('Some files failed:\n'+errors.join('\n'));
+                            }
                         }else{
-                            target.push({fileName:file.name, image:e.target.result});
+                            slCompressImage(e.target.result, img => {
+                                target.push({fileName:file.name, image:img});
+                                done++;
+                                if(done===files.length){
+                                    fi.value='';
+                                    renderPendingResultPreview();
+                                    if(errors.length)alert('Some files failed:\n'+errors.join('\n'));
+                                }
+                            }, () => {
+                                errors.push(file.name+': image read nahi hui');
+                                done++;
+                                if(done===files.length){
+                                    fi.value='';
+                                    renderPendingResultPreview();
+                                    if(errors.length)alert('Some files failed:\n'+errors.join('\n'));
+                                }
+                            });
                         }
-                    }catch(err){errors.push(file.name+': '+err.message);}
-                    done++;
-                    if(done===files.length){
-                        fi.value='';
-                        renderPendingResultPreview();
-                        if(errors.length)alert('Some files failed:\n'+errors.join('\n'));
+                    }catch(err){
+                        errors.push(file.name+': '+err.message);
+                        done++;
+                        if(done===files.length){
+                            fi.value='';
+                            renderPendingResultPreview();
+                            if(errors.length)alert('Some files failed:\n'+errors.join('\n'));
+                        }
                     }
                 };
                 if(type==='pc')rd.readAsText(file);else rd.readAsDataURL(file);
@@ -2310,7 +2331,7 @@
             const savedCount=pendingPcResults.length;
             saveAppConfig(c);
             renderAdminResultsManager();
-            syncPcResultsToFirebaseWithoutBlocking(c);
+            syncResultsToFirebaseWithoutBlocking(c);
             try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             document.getElementById('adminResultReplaceId').value='';
             clearPendingResultPreview();
@@ -2321,6 +2342,7 @@
             const lobby=document.getElementById('adminResultLobbySelect')?.value||'L1',slot=document.getElementById('adminResultSlotSelect')?.value||'',date=document.getElementById('adminResultDateInput')?.value||'',replaceId=document.getElementById('adminResultImageReplaceId')?.value||'';
             if(!date)return alert('Kripya date select karein!');
             if(!pendingImageResults.length)return alert('Kripya JPG/PNG result photo choose karein!');
+            if(!slFbOk())return alert('Realtime database connect nahi hai. Internet check karein.');
             const c=getAppConfig();c.resultsList=c.resultsList||[];
             pendingImageResults.forEach((res,i)=>{
                 const obj={id:replaceId&&pendingImageResults.length===1?replaceId:'res_img_'+Date.now()+'_'+i,type:'image',lobby,slot,date,image:res.image,fileName:res.fileName};
@@ -2329,11 +2351,14 @@
             });
             try{saveAppConfig(c);}catch(err){return alert('Photo save nahi ho paya. Image size chhota karke dobara try karein.');}
             renderAdminResultsManager();
-            try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
             const savedCount=pendingImageResults.length;
-            document.getElementById('adminResultImageReplaceId').value='';
-            clearPendingResultPreview();
-            alert(`${savedCount} result photo${savedCount>1?'s':''} saved successfully.`);
+            syncResultsToFirebase(c).then(ok=>{
+                if(!ok){alert('Photo local save ho gaya, lekin database sync nahi ho paya. Internet check karke dobara REPLACE karein.');return;}
+                try { updateResultDateOptions(); displaySelectedResult(); } catch (_) {}
+                document.getElementById('adminResultImageReplaceId').value='';
+                clearPendingResultPreview();
+                alert(`${savedCount} result photo${savedCount>1?'s':''} saved successfully.`);
+            });
         }
 
         function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p></div><div class="flex gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button><button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('');}
@@ -2347,21 +2372,20 @@
             
             if(confirm(`Kya aap ${r.lobby||'L1'} | ${r.slot} | ${r.date} ka result DELETE karna chahte hain? Delete karne ke baad ye kisi ko nahi dikhega.`)){
                 const deletedId = r.id;
-                const wasPc = (r.type === 'pc');
-                
+
                 // Remove from local list
                 c.resultsList.splice(i, 1);
                 saveAppConfig(c);
                 renderAdminResultsManager();
                 
-                // Sync complete removal to Firebase so no one can see it
-                if (wasPc && rskFirebaseReady && rskFirebaseDb && deletedId) {
-                    rskFirebaseDb.ref(RSK_PC_RESULTS_PATH + '/' + deletedId).remove().catch(err => {
+                // Sync complete removal to Firebase so no one can see it (works for .pc AND photo results)
+                if (rskFirebaseReady && rskFirebaseDb && deletedId) {
+                    rskFirebaseDb.ref(RSK_RESULTS_PATH + '/' + deletedId).remove().catch(err => {
                         console.error('Firebase single result remove failed, doing full set sync:', err);
-                        syncPcResultsToFirebaseWithoutBlocking(c);
+                        syncResultsToFirebaseWithoutBlocking(c);
                     });
-                } else if (wasPc) {
-                    syncPcResultsToFirebaseWithoutBlocking(c);
+                } else {
+                    syncResultsToFirebaseWithoutBlocking(c);
                 }
                 
                 // Refresh client view immediately so it disappears for everyone on page
