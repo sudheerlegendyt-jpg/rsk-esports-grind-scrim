@@ -2478,7 +2478,7 @@
             });
         }
 
-        function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p><p class="text-[10px] font-bold ${r.code?'text-emerald-400':'text-red-400'}">${r.code?('CODE: '+esc(r.code)):'NO CODE SET (viewer nahi dekh payega)'}</p></div><div class="flex gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button>${r.code?`<button type="button" onclick="removeResultCode(${i})" class="bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE CODE</button>`:''}<button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('');}
+        function renderAdminResultsManager(){const c=getAppConfig(),box=document.getElementById('adminResultsManagerList');if(!box)return;if(!c.resultsList?.length){box.innerHTML='<p class="text-xs text-gray-400">Abhi tak koi result upload nahi hua hai.</p>';return;}box.innerHTML=c.resultsList.map((r,i)=>`<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3"><div><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby||'L1')} • ${esc(r.slot)}</p><p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type==='pc'?'.PC RESULT':'PHOTO RESULT'}</p><p class="text-[10px] text-gray-400 truncate">${esc(r.fileName||r.tournamentName||'')}</p><p class="text-[10px] font-bold ${r.code?'text-emerald-400':'text-red-400'}">${r.code?('CODE: '+esc(r.code)):'NO CODE SET (viewer nahi dekh payega)'}</p></div><div class="flex gap-2"><div class="flex flex-col gap-2"><button type="button" onclick="prepareReplaceResult(${i})" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button>${r.code?`<button type="button" onclick="removeResultCode(${i})" class="bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE CODE</button>`:''}</div><div class="flex flex-col gap-2"><button type="button" onclick="deleteResultItem(${i})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button><button type="button" onclick="editResultCode(${i})" class="bg-sky-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT CODE</button><button type="button" onclick="updateResultCode(${i})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg">UPDATE</button></div></div></div>`).join('');}
         function prepareReplaceResult(i){const c=getAppConfig(),r=c.resultsList?.[i];if(!r)return;clearPendingResultPreview();document.getElementById('adminResultLobbySelect').value=r.lobby||'L1';document.getElementById('adminResultSlotSelect').value=r.slot||'1-3 PM';document.getElementById('adminResultDateInput').value=r.date||'';document.getElementById('adminResultCodeInput').value=r.code||'';document.getElementById('adminResultReplaceId').value=r.type==='pc'?r.id:'';document.getElementById('adminResultImageReplaceId').value=r.type==='image'?r.id:'';alert(r.type==='image'?'REPLACE mode on hai. Nayi JPG/PNG photo choose karke pehle ADMIN VIEW/EDIT check karein, phir UPLOAD RESULT PHOTO dabayein.':'REPLACE mode on hai. Nayi .pc file choose karke pehle ADMIN VIEW/EDIT check karein, phir ADD / REPLACE .PC RESULT dabayein.');}
 
         function removeResultCode(i){
@@ -2490,6 +2490,26 @@
             saveAppConfig(c);
             renderAdminResultsManager();
             syncResultsToFirebaseWithoutBlocking(c);
+        }
+
+        function editResultCode(i){
+            if (!slRequireAdmin()) return;
+            const c=getAppConfig(),r=c.resultsList?.[i];
+            if(!r)return;
+            const newCode=prompt(`${r.lobby||'L1'} • ${r.slot} • ${r.date} ka naya secret code enter karein:`, r.code||'');
+            if(newCode===null)return;
+            r.code=newCode.trim();
+            saveAppConfig(c);
+            renderAdminResultsManager();
+            alert('Code edit ho gaya. Ab isse LIVE karne ke liye UPDATE button dabayein.');
+        }
+
+        function updateResultCode(i){
+            if (!slRequireAdmin()) return;
+            const c=getAppConfig(),r=c.resultsList?.[i];
+            if(!r)return;
+            syncResultsToFirebaseWithoutBlocking(c);
+            alert(`${r.lobby||'L1'} • ${r.slot} ka code update ho gaya.`);
         }
         
         function deleteResultItem(i){
