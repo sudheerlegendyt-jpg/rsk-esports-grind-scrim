@@ -510,15 +510,19 @@
         </div>
     </div>
 
-    <!-- MODAL: SLOT LIST RULES (realtime DB se aata hai — admin edit karte hi turant sabhi codes/viewers me update ho jata hai; GET IDP / SLOT LIST box ke andar hi dikhta hai) -->
-    <div id="slotRulesModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-[70] flex items-center justify-center p-4">
-        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-5 shadow-2xl relative text-left overflow-y-auto" style="max-height:calc(100vh - 24px)">
-            <button type="button" onclick="closeSlotRulesModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">
+    <!-- MODAL: SLOT LIST RULE TEXT -->
+    <div id="slotRuleTextModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[55] flex items-center justify-center p-4">
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-5 shadow-2xl relative">
+            <button type="button" onclick="closeSlotRuleTextModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h3 class="font-teko text-3xl font-bold text-esports-yellow text-center leading-none mb-3"><i class="fa-solid fa-scroll mr-2"></i>RULES</h3>
-            <div id="slotRulesContent" class="text-[13px] leading-relaxed font-rajdhani text-gray-200 pr-1"></div>
-            <button type="button" onclick="closeSlotRulesModal()" class="w-full mt-4 bg-esports-yellow hover:bg-amber-400 text-black font-teko text-xl font-bold py-2 rounded-xl">CLOSE</button>
+            <div class="text-center mb-4 pr-6">
+                <i class="fa-solid fa-scroll text-4xl text-esports-yellow mb-2"></i>
+                <h3 class="font-teko text-3xl font-bold text-white leading-none">TOURNAMENT RULES</h3>
+                <p class="text-xs text-gray-400 font-rajdhani mt-1">Live rules from RSK ESPORTS</p>
+            </div>
+            <div id="slotRuleTextContent" class="bg-black/60 border border-esports-lightPurple rounded-xl p-4 text-left text-sm text-gray-200 font-rajdhani whitespace-pre-line leading-relaxed max-h-[60vh] overflow-y-auto"></div>
+            <button type="button" onclick="closeSlotRuleTextModal()" class="mt-4 w-full bg-esports-yellow hover:bg-amber-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">CLOSE</button>
         </div>
     </div>
 
@@ -921,10 +925,32 @@
                 </div>
 
                 <div class="pt-4 border-t border-esports-lightPurple/50">
-                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2"><i class="fa-solid fa-scroll mr-2"></i>SLOT LIST "READ RULE" POPUP</h4>
-                    <p class="text-xs font-rajdhani text-gray-300 mb-2">Ye rules viewer ko GET IDP / SLOT LIST box ke "READ RULE" button par dikhte hain. Yahan edit karke SAVE karte hi turant sabhi viewers ko naya text realtime dikhega — koi bhi secret code ho, sabme same rules dikhte hain. Bold ke liye *text* aur italic ke liye _text_ likhein.</p>
-                    <textarea id="adminSlotRulesText" rows="16" spellcheck="false" class="w-full bg-black/50 border border-esports-lightPurple text-white p-3 rounded-lg font-rajdhani text-xs leading-relaxed" placeholder="Rules yahan likhein..."></textarea>
-                    <button type="button" onclick="saveSlotRulesText()" class="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">SAVE RULES</button>
+                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2"><i class="fa-solid fa-scroll mr-2"></i>SLOT LIST "READ RULE" CONTENT</h4>
+                    <p class="text-xs font-rajdhani text-gray-300 mb-3">Admin chahe to <b>LINK</b> ya <b>RULE TEXT</b> me se koi ek active kar sakta hai. Save/Update ke baad sabhi currently-open viewers ko bhi realtime me wahi content milega. Jab tak admin dobara update nahi karta, current content same rahega.</p>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                            <label class="block text-[10px] text-gray-300 font-bold uppercase mb-1">Content Type</label>
+                            <select id="adminSlotRuleMode" onchange="toggleAdminSlotRuleMode()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani font-bold">
+                                <option value="link">LINK</option>
+                                <option value="text">RULE TEXT</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <div class="w-full bg-black/40 border border-esports-lightPurple/50 rounded-lg px-3 py-2">
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">Realtime Status</p>
+                                <p id="adminSlotRuleLiveStatus" class="text-xs text-emerald-300 font-bold">LIVE</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="adminSlotRuleLinkWrap">
+                        <label class="block text-[10px] text-gray-300 font-bold uppercase mb-1">Rule Link</label>
+                        <input type="url" id="adminSlotRuleLink" autocomplete="off" placeholder="https://drive.google.com/file/d/.../view?usp=sharing" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani text-sm">
+                    </div>
+                    <div id="adminSlotRuleTextWrap" class="hidden">
+                        <label class="block text-[10px] text-gray-300 font-bold uppercase mb-1">Rule Text</label>
+                        <textarea id="adminSlotRuleText" rows="7" maxlength="5000" placeholder="Yahan tournament rules likhein..." class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani text-sm whitespace-pre-line"></textarea>
+                    </div>
+                    <button type="button" onclick="saveSlotRuleContent()" class="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">SAVE / UPDATE RULE</button>
                     <p id="adminSlotRulesStatus" class="text-xs text-center font-rajdhani mt-1"></p>
                 </div>
             </div>
@@ -1260,13 +1286,12 @@
                 }, error => {
                     console.error('Firebase top banner listener error:', error);
                 });
-                // Slot list ke "READ RULE" popup ka text — admin edit kare to sabhi viewers ko turant naya text milta hai
-                rskFirebaseDb.ref(RSK_SLOT_RULES_PATH).on('value', snapshot => {
-                    const v = snapshot.val();
-                    slRulesText = (typeof v === 'string' && v.trim()) ? v : DEFAULT_SLOT_RULES_TEXT;
-                    renderSlotRulesEverywhere();
+                // Slot list READ RULE content — LINK ya RULE TEXT, dono realtime.
+                rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).on('value', snapshot => {
+                    slRuleContent = normalizeSlotRuleContent(snapshot.val());
+                    renderSlotRuleLinkEverywhere();
                 }, error => {
-                    console.error('Firebase slot rules listener error:', error);
+                    console.error('Firebase slot rule content listener error:', error);
                 });
             } catch (error) {
                 rskFirebaseReady = false;
@@ -2518,7 +2543,7 @@
             renderAdminResultCodesManager();
             adminSlotAuthThenStart();
             renderAdminRank1Announcements();
-            renderSlotRulesEverywhere();
+            renderSlotRuleLinkEverywhere();
             checkAdminNotificationAlert();
             setTimeout(loadOneSignalRestKey, 500);
             setTimeout(loadAvailableCodes, 500);
@@ -3345,64 +3370,100 @@
         // ==================================================================
         const RSK_SLOT_ROOMS_PATH = 'rsk_esports_slot_rooms';
         const RSK_SLOT_LISTS_PATH = 'rsk_esports_slot_lists';
-        const RSK_SLOT_RULES_PATH = 'rsk_esports_slot_rules';
-        const DEFAULT_SLOT_RULES_TEXT = `*RULES*
+        const RSK_SLOT_RULE_LINK_PATH = 'rsk_esports_slot_rule_link';
+        let slRuleContent = { mode: 'link', link: '', text: '' };
 
-_‼️ Read all rules carefully and strictly follow ‼️_
-
-1. *Merit < 80 = DIRECT KICK/DISQUALIFIED. Low level IDs must be informed beforehand*, otherwise management not responsible if kicked. *Only mobile devices are allowed. Emulator, ipad, tablet etc. _NOT_ allowed*
-2. *Result screenshot must*, management can ask anytime. *If failed to provide, No SS = No points*
-3. *Sit in allotted slot*, otherwise management not responsible if kicked.
-4. *Join with \`ALL 4 PLAYERS\` before last kick time*, otherwise management not responsible if you joined with less than 4 men and someone else sits in your slot and ruins your game or gives free finish to other team.
-5. If management misses to provide IDP OR kicks mistakenly and starts the match, fix 4-5 compensation points, no bargain.
-• (i) _Due to ongoing network glitches, you may get an alert saying \`'You have been removed from the room'\` OR \`'Room has been disbanded'\` etc. which is not reality. *Only the screenshot showing waiting timer to rejoin the room with the clip showing entering IDP and password will be considered as valid proof* that you were kicked by management_
-6. POV Rules: *Record full RAW POV* of all players showing game opening from play store / app store and apps running in background and 'About Phone' section from device settings.
-7. For asking POV, must provide both your POV and deathcam mandatorily. In this case, if management fails to provide alleged team POV, compensation points at management discretion (if management finds allegations as genuine). To avoid misuse of Rule 7 by sending irrelevant and non-sus POVs and deathcams, following compensation rules will be applicable:
-• (i) If alleged team is not in top 4, *ZERO* compensation points
-• (ii) If alleged team in top 4, and doesn't send POV(s), *4 compensation points*
-• (iii) On further investigation, If alleged team is disqualified for \`hacking\`, *1* point per player finished by them (only to teams who reported to mgm)
-• (iv) Compensation points can vary subject to mgm decision, no bargain accepted from teams
-8. *Picking, Attempting to use OR Self-Revive using Self AED is prohibited*, 0 points to guilty, no compensation for victim
-9. *Emergency pickup NOT Allowed*, 0 points for that game
-• (i) *Mortar NOT Allowed*, 0 points on usage, +5 to victim. *DEATHCAM MUST*
-10. If found guilty for hacking, direct permanent BAN
-11. If your team has allegations or anything seems suspicious, management reserves the right to ask anyone for POV, OR call for device check anytime even on provision of POV, no excuses tolerated. *Failure to provide POV = No PP*. In certain cases, 0 points will be awarded instead of disqualification
-12. In case of tie, *No. of WWCDs > Position Points > Finishes Points > Last Match Position*
-13. In case of any dispute OR unforeseen circumstances OR cases not mentioned in rules, management decision would be final
-
-> Guidelines
-1. No requests for device check will be accepted without POV ('About Phone' section must be shown in POV)
-2. No POV = Direct DISQUALIFY, No Device Check OR Argument`;
-        let slRulesText = DEFAULT_SLOT_RULES_TEXT;
-
-        // WhatsApp-style *bold* / _italic_ ko HTML me convert karta hai (pehle HTML-escape karke, XSS-safe)
-        function slRulesToHtml(text) {
-            let t = esc(text || '');
-            t = t.replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
-            t = t.replace(/_([^_\n]+)_/g, '<i>$1</i>');
-            t = t.replace(/\n/g, '<br>');
-            return t;
+        function normalizeSlotRuleContent(v) {
+            if (typeof v === 'string') return { mode: 'link', link: v.trim(), text: '' };
+            if (!v || typeof v !== 'object') return { mode: 'link', link: '', text: '' };
+            return {
+                mode: v.mode === 'text' ? 'text' : 'link',
+                link: String(v.link || '').trim(),
+                text: String(v.text || '')
+            };
         }
-        function renderSlotRulesEverywhere() {
-            const view = document.getElementById('slotRulesContent');
-            if (view) view.innerHTML = slRulesToHtml(slRulesText);
-            const ta = document.getElementById('adminSlotRulesText');
-            if (ta && document.activeElement !== ta) ta.value = slRulesText;
+
+        function toggleAdminSlotRuleMode() {
+            const mode = document.getElementById('adminSlotRuleMode')?.value === 'text' ? 'text' : 'link';
+            document.getElementById('adminSlotRuleLinkWrap')?.classList.toggle('hidden', mode !== 'link');
+            document.getElementById('adminSlotRuleTextWrap')?.classList.toggle('hidden', mode !== 'text');
         }
-        async function saveSlotRulesText() {
+
+        function renderSlotRuleLinkEverywhere() {
+            const data = normalizeSlotRuleContent(slRuleContent);
+            slRuleContent = data;
+            const mode = document.getElementById('adminSlotRuleMode');
+            const link = document.getElementById('adminSlotRuleLink');
+            const text = document.getElementById('adminSlotRuleText');
+            if (mode && document.activeElement !== mode) mode.value = data.mode;
+            if (link && document.activeElement !== link) link.value = data.link;
+            if (text && document.activeElement !== text) text.value = data.text;
+            toggleAdminSlotRuleMode();
+            const live = document.getElementById('adminSlotRuleLiveStatus');
+            if (live) live.textContent = data.mode === 'text' ? 'LIVE • RULE TEXT' : 'LIVE • LINK';
+            if (typeof renderSlotGroupView === 'function' && slViewerRoom) renderSlotGroupView();
+        }
+
+        async function saveSlotRuleContent() {
             if (!slRequireAdmin()) return;
-            const ta = document.getElementById('adminSlotRulesText');
-            const text = (ta?.value || '').trim();
+            const mode = document.getElementById('adminSlotRuleMode')?.value === 'text' ? 'text' : 'link';
+            const link = (document.getElementById('adminSlotRuleLink')?.value || '').trim();
+            const text = document.getElementById('adminSlotRuleText')?.value || '';
             const status = document.getElementById('adminSlotRulesStatus');
-            if (!text) { if (status) { status.textContent = 'Rules text khaali nahi ho sakta!'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; } return; }
-            if (!slFbOk()) { if (status) { status.textContent = 'Realtime database connect nahi hai.'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; } return; }
+
+            if (mode === 'link' && (!link || !/^https?:\/\//i.test(link))) {
+                if (status) { status.textContent = 'Sahi http/https rule link daalein.'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
+                return;
+            }
+            if (mode === 'text' && !text.trim()) {
+                if (status) { status.textContent = 'Rule text khaali nahi ho sakta!'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
+                return;
+            }
+            if (!slFbOk()) {
+                if (status) { status.textContent = 'Realtime database connect nahi hai.'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
+                return;
+            }
+
+            const payload = { mode, link: mode === 'link' ? link : '', text: mode === 'text' ? text : '' };
             try {
-                await rskFirebaseDb.ref(RSK_SLOT_RULES_PATH).set(text);
-                if (status) { status.textContent = '✅ Rules save ho gaye, sabhi viewers ko turant naya text dikhega.'; status.className = 'text-xs text-center font-rajdhani text-emerald-400 mt-1'; }
+                await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(payload);
+                slRuleContent = payload;
+                renderSlotRuleLinkEverywhere();
+                if (status) {
+                    status.textContent = mode === 'link'
+                        ? '✅ Rule LINK update ho gaya — sabhi viewers me realtime update hoga.'
+                        : '✅ Rule TEXT update ho gaya — sabhi viewers me realtime update hoga.';
+                    status.className = 'text-xs text-center font-rajdhani text-emerald-400 mt-1';
+                }
             } catch (e) {
                 console.error(e);
-                if (status) { status.textContent = '❌ Save nahi hua: ' + slErrText(e); status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
+                if (status) { status.textContent = '❌ Update nahi hua: ' + slErrText(e); status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
             }
+        }
+
+        async function saveSlotRuleLink() {
+            const mode = document.getElementById('adminSlotRuleMode');
+            if (mode) mode.value = 'link';
+            toggleAdminSlotRuleMode();
+            return saveSlotRuleContent();
+        }
+
+        function openSlotRuleLink() {
+            const data = normalizeSlotRuleContent(slRuleContent);
+            if (data.mode === 'text') {
+                const modal = document.getElementById('slotRuleTextModal');
+                const body = document.getElementById('slotRuleTextContent');
+                if (!modal || !body) return;
+                body.textContent = data.text || 'Abhi koi rule text set nahi hai.';
+                modal.classList.remove('hidden');
+                return;
+            }
+            if (!data.link) { alert('Abhi tak rule link set nahi hua hai. Thodi der baad try karein.'); return; }
+            window.open(data.link, '_blank', 'noopener');
+        }
+
+        function closeSlotRuleTextModal() {
+            document.getElementById('slotRuleTextModal')?.classList.add('hidden');
         }
 
         function slGroupKey(slot, lobby) {
@@ -3453,13 +3514,6 @@ _‼️ Read all rules carefully and strictly follow ‼️_
             slShowError('');
             slShowStep('code');
             document.getElementById('slotListModal').classList.remove('hidden');
-        }
-        function openSlotRulesModal() {
-            renderSlotRulesEverywhere();
-            document.getElementById('slotRulesModal')?.classList.remove('hidden');
-        }
-        function closeSlotRulesModal() {
-            document.getElementById('slotRulesModal')?.classList.add('hidden');
         }
         function closeSlotListModal() {
             slDetachViewer(); slViewerCode = '';
@@ -3590,7 +3644,7 @@ _‼️ Read all rules carefully and strictly follow ‼️_
             return `<div class="bg-black/60 border border-esports-lightPurple rounded-lg px-2 py-1">
                 <p class="text-[9px] font-rajdhani font-bold text-gray-400 uppercase mb-0.5 leading-none"><i class="fa-solid ${icon} text-esports-yellow mr-1"></i>${label}</p>
                 ${has ? `<div class="flex items-center justify-between gap-2">
-                    <span class="font-mono text-sm font-bold text-amber-300 break-all" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
+                    <span class="font-mono text-sm font-bold text-amber-300 whitespace-nowrap" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
                     <button type="button" data-copy="${esc(value)}" onclick="slCopyFrom(this)" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-rajdhani text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none"><i class="fa-regular fa-copy mr-1"></i>COPY</button>
                 </div>` : `<p class="text-amber-400 font-teko text-sm tracking-wider animate-pulse leading-none">COMING SOON...</p>`}
             </div>`;
@@ -3616,7 +3670,7 @@ _‼️ Read all rules carefully and strictly follow ‼️_
                     <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-clock mr-1"></i>IDP: ${idpTime ? esc(idpTime) : 'COMING SOON...'}</span>
                     <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-flag-checkered mr-1"></i>START: ${startTime ? esc(startTime) : 'COMING SOON...'}</span>
                 </div>
-                <div class="grid grid-cols-2 gap-1.5">
+                <div class="grid grid-cols-1 gap-1.5">
                     ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
                     ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
                 </div>
@@ -3639,7 +3693,7 @@ _‼️ Read all rules carefully and strictly follow ‼️_
                 <div>
                     <p class="text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-2 flex items-center justify-between gap-2">
                         <span><i class="fa-solid fa-clipboard-list mr-1"></i>SLOT LIST</span>
-                        <button type="button" onclick="openSlotRulesModal()" class="bg-esports-yellow hover:bg-amber-400 text-black text-[10px] font-teko tracking-wide font-bold px-2 py-1 rounded-md leading-none"><i class="fa-solid fa-scroll mr-1"></i>READ RULE</button>
+                        <button type="button" onclick="openSlotRuleLink()" class="bg-esports-yellow hover:bg-amber-400 text-black text-[10px] font-teko tracking-wide font-bold px-2 py-1 rounded-md leading-none"><i class="fa-solid fa-scroll mr-1"></i>READ RULE</button>
                     </p>
                     <div class="space-y-3 overflow-y-auto" style="max-height:45vh">${listHtml}</div>
                 </div>
