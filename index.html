@@ -135,28 +135,12 @@
 </head>
 <body class="bg-grid min-h-screen flex flex-col justify-between selection:bg-esports-yellow selection:text-black">
 
-    <!-- RSK DEBUG BOX: OneSignal troubleshooting ke liye, screenshot leke bhej sakte ho -->
-    <div id="rskDebugBox" style="display:none; position:fixed; top:0; left:0; right:0; z-index:99999; background:#111; color:#0f0; font-family:monospace; font-size:11px; padding:8px; max-height:35vh; overflow-y:auto; border-bottom:2px solid #0f0;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <b style="color:#fff;">RSK DEBUG LOG (screenshot leke bhej do)</b>
-            <button onclick="document.getElementById('rskDebugBox').style.display='none'" style="background:#f00; color:#fff; border:none; padding:2px 8px; border-radius:4px;">Close X</button>
-        </div>
-        <div id="rskDebugContent"></div>
-    </div>
-    <button id="rskDebugToggleBtn" onclick="(function(){var b=document.getElementById('rskDebugBox'); b.style.display = (b.style.display==='none'?'block':'none');})()" style="position:fixed; bottom:10px; right:10px; z-index:99999; background:#0f0; color:#000; font-weight:bold; border:none; padding:8px 12px; border-radius:20px; font-family:monospace; font-size:11px; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🐞 Debug</button>
+    <!-- RSK DEBUG: Visual debug box hata diya gaya hai (production ke liye), ab sirf
+         console me log hota hai (browser DevTools > Console me dikhega), website par
+         kahin nahi dikhega. -->
     <script>
         function rskDebugLog(msg) {
-            try {
-                const box = document.getElementById('rskDebugBox');
-                const content = document.getElementById('rskDebugContent');
-                if (!box || !content) return;
-                box.style.display = 'block';
-                const time = new Date().toLocaleTimeString();
-                const line = document.createElement('div');
-                line.textContent = '[' + time + '] ' + msg;
-                content.appendChild(line);
-                box.scrollTop = box.scrollHeight;
-            } catch (e) {}
+            console.log('[RSK DEBUG] ' + msg);
         }
         window.addEventListener('error', function(e) {
             rskDebugLog('❌ JS ERROR: ' + (e.message || 'unknown') + ' (' + (e.filename || '') + ':' + (e.lineno || '') + ')');
@@ -3993,6 +3977,13 @@
         // ==================================================================
         const RSK_ONESIGNAL_APP_ID = "32ceb847-76a4-4807-8090-0bcbeb510d0c";
         const RSK_ONESIGNAL_KEY_STORAGE = "rsk_onesignal_rest_key";
+        // "Check Subscribers" browser se seedhe OneSignal API (GET /apps/{id}) ko call nahi kar sakta
+        // kyunki OneSignal us endpoint par CORS allow nahi karta. Isko real me kaam karwane ke liye
+        // ek chhota free proxy (jaise Cloudflare Worker) chahiye jo ye request server-side forward kare.
+        // Proxy deploy karne ke baad uska URL yahan daal dein, jaise:
+        // const RSK_SUBSCRIBER_CHECK_PROXY_URL = "https://your-worker-name.your-subdomain.workers.dev";
+        // Khaali chodne par button ek friendly message dikhayega aur dashboard check karne ko kahega.
+        const RSK_SUBSCRIBER_CHECK_PROXY_URL = "";
 
         function loadOneSignalRestKey() {
             const saved = localStorage.getItem(RSK_ONESIGNAL_KEY_STORAGE);
@@ -4240,8 +4231,16 @@
             status.textContent = "Subscribers check ho rahe hain...";
             status.className = "text-xs text-center font-rajdhani text-amber-400";
 
+            // Agar proxy configure nahi hai to seedhe bata do (bina fetch try kiye), taaki
+            // console me bhi bekar CORS error na aaye aur user ko turant clear jawab mile.
+            if (!RSK_SUBSCRIBER_CHECK_PROXY_URL) {
+                status.textContent = "⚠️ Subscribers count is browser se directly check nahi ho sakta (OneSignal ki CORS security restriction hai, website ki galti nahi). SEND NOTIFICATION phir bhi normal kaam karega — subscribers dekhne ke liye OneSignal dashboard (onesignal.com → Audience) kholein.";
+                status.className = "text-xs text-center font-rajdhani text-amber-400";
+                return;
+            }
+
             try {
-                const response = await fetch(`https://onesignal.com/api/v1/apps/${RSK_ONESIGNAL_APP_ID}`, {
+                const response = await fetch(`${RSK_SUBSCRIBER_CHECK_PROXY_URL}?app_id=${RSK_ONESIGNAL_APP_ID}`, {
                     headers: { "Authorization": "Key " + restKey }
                 });
 
@@ -4261,12 +4260,8 @@
                     status.className = "text-xs text-center font-rajdhani text-red-400";
                 }
             } catch (e) {
-                // "Failed to fetch" yahan generally isliye aata hai kyunki browser se seedhe is
-                // OneSignal endpoint ko call karne par CORS block ho jata hai (ye website ki
-                // galti nahi hai, OneSignal is GET endpoint par browser requests allow nahi karta).
-                // Isliye raw technical error dikhane ke bajaye ek clear, samajhne layak message dikhate hain.
-                console.warn("Subscriber check could not complete (likely a browser CORS restriction):", e);
-                status.textContent = "⚠️ Subscribers count is browser se directly check nahi ho pa raha (security/CORS restriction). Key sahi hai to SEND NOTIFICATION kaam karega — subscribers dekhne ke liye OneSignal dashboard (onesignal.com → Audience) kholein.";
+                console.warn("Subscriber check via proxy failed:", e);
+                status.textContent = "⚠️ Proxy se bhi subscribers check nahi ho paya. Proxy URL sahi hai ya nahi check karein, ya OneSignal dashboard (onesignal.com → Audience) me dekh lein.";
                 status.className = "text-xs text-center font-rajdhani text-amber-400";
             }
         }
