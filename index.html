@@ -11,6 +11,15 @@
         function rskLog(msg) {
             if (typeof rskDebugLog === 'function') rskDebugLog(msg); else console.log(msg);
         }
+        async function rskWaitForPlayerId(OneSignal, maxTries) {
+            maxTries = maxTries || 6;
+            for (let i = 0; i < maxTries; i++) {
+                const id = OneSignal.User && OneSignal.User.PushSubscription ? OneSignal.User.PushSubscription.id : null;
+                if (id) return id;
+                await new Promise(r => setTimeout(r, 800));
+            }
+            return null;
+        }
         OneSignalDeferred.push(async function(OneSignal) {
             try {
                 rskLog('🔵 OneSignal init shuru ho raha hai...');
@@ -2178,12 +2187,14 @@
                         rskLog('🟢 Result: permission response = ' + permission);
                         
                         if (permission) {
-                            const playerId = await OneSignal.getUserId();
+                            const playerId = await rskWaitForPlayerId(OneSignal);
                             rskLog('Result: playerId = ' + playerId);
                             if (playerId) {
-                                await OneSignal.sendTag("result_code_" + code, "subscribed");
+                                await OneSignal.User.addTag("result_code_" + code, "subscribed");
                                 console.log("OneSignal: Result tag saved for code:", code);
                                 rskLog('✅ Result: tag saved (result_code_' + code + ')');
+                            } else {
+                                rskLog('⚠️ Result: playerId abhi tak nahi mila, thodi der baad try karein');
                             }
                         } else {
                             console.warn("OneSignal: Permission denied by user");
@@ -3368,12 +3379,14 @@
                         rskLog('🟢 Room: permission response = ' + permission);
                         
                         if (permission) {
-                            const playerId = await OneSignal.getUserId();
+                            const playerId = await rskWaitForPlayerId(OneSignal);
                             rskLog('Room: playerId = ' + playerId);
                             if (playerId) {
-                                await OneSignal.sendTag("room_code_" + code, "subscribed");
+                                await OneSignal.User.addTag("room_code_" + code, "subscribed");
                                 console.log("OneSignal: Room tag saved for code:", code);
                                 rskLog('✅ Room: tag saved (room_code_' + code + ')');
+                            } else {
+                                rskLog('⚠️ Room: playerId abhi tak nahi mila, thodi der baad try karein');
                             }
                         } else {
                             console.warn("OneSignal: Permission denied by user");
