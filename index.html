@@ -510,6 +510,18 @@
         </div>
     </div>
 
+    <!-- MODAL: SLOT LIST RULES (realtime DB se aata hai — admin edit karte hi turant sabhi codes/viewers me update ho jata hai; GET IDP / SLOT LIST box ke andar hi dikhta hai) -->
+    <div id="slotRulesModal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-lg w-full p-5 shadow-2xl relative text-left overflow-y-auto" style="max-height:calc(100vh - 24px)">
+            <button type="button" onclick="closeSlotRulesModal()" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="font-teko text-3xl font-bold text-esports-yellow text-center leading-none mb-3"><i class="fa-solid fa-scroll mr-2"></i>RULES</h3>
+            <div id="slotRulesContent" class="text-[13px] leading-relaxed font-rajdhani text-gray-200 pr-1"></div>
+            <button type="button" onclick="closeSlotRulesModal()" class="w-full mt-4 bg-esports-yellow hover:bg-amber-400 text-black font-teko text-xl font-bold py-2 rounded-xl">CLOSE</button>
+        </div>
+    </div>
+
     <!-- MODAL: GET PRIZE POOL -->
     <div id="prizeClaimModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[60] flex items-center justify-center p-4">
         <div class="bg-esports-darkPurple border-2 border-esports-yellow rounded-2xl max-w-md w-full p-5 shadow-2xl relative">
@@ -907,6 +919,14 @@
                     <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2">MANAGED UPLOADED SLOT LISTS</h4>
                     <div id="adminSlListsManager" class="space-y-3"></div>
                 </div>
+
+                <div class="pt-4 border-t border-esports-lightPurple/50">
+                    <h4 class="font-teko text-2xl text-esports-yellow font-bold mb-2"><i class="fa-solid fa-scroll mr-2"></i>SLOT LIST "READ RULE" POPUP</h4>
+                    <p class="text-xs font-rajdhani text-gray-300 mb-2">Ye rules viewer ko GET IDP / SLOT LIST box ke "READ RULE" button par dikhte hain. Yahan edit karke SAVE karte hi turant sabhi viewers ko naya text realtime dikhega — koi bhi secret code ho, sabme same rules dikhte hain. Bold ke liye *text* aur italic ke liye _text_ likhein.</p>
+                    <textarea id="adminSlotRulesText" rows="16" spellcheck="false" class="w-full bg-black/50 border border-esports-lightPurple text-white p-3 rounded-lg font-rajdhani text-xs leading-relaxed" placeholder="Rules yahan likhein..."></textarea>
+                    <button type="button" onclick="saveSlotRulesText()" class="w-full mt-2 bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">SAVE RULES</button>
+                    <p id="adminSlotRulesStatus" class="text-xs text-center font-rajdhani mt-1"></p>
+                </div>
             </div>
 
             <!-- ADMIN: RANK 1 ANNOUNCEMENT MANAGER -->
@@ -1239,6 +1259,14 @@
                     if (banner) banner.textContent = config.topBannerText;
                 }, error => {
                     console.error('Firebase top banner listener error:', error);
+                });
+                // Slot list ke "READ RULE" popup ka text — admin edit kare to sabhi viewers ko turant naya text milta hai
+                rskFirebaseDb.ref(RSK_SLOT_RULES_PATH).on('value', snapshot => {
+                    const v = snapshot.val();
+                    slRulesText = (typeof v === 'string' && v.trim()) ? v : DEFAULT_SLOT_RULES_TEXT;
+                    renderSlotRulesEverywhere();
+                }, error => {
+                    console.error('Firebase slot rules listener error:', error);
                 });
             } catch (error) {
                 rskFirebaseReady = false;
@@ -2490,6 +2518,7 @@
             renderAdminResultCodesManager();
             adminSlotAuthThenStart();
             renderAdminRank1Announcements();
+            renderSlotRulesEverywhere();
             checkAdminNotificationAlert();
             setTimeout(loadOneSignalRestKey, 500);
             setTimeout(loadAvailableCodes, 500);
@@ -3316,6 +3345,65 @@
         // ==================================================================
         const RSK_SLOT_ROOMS_PATH = 'rsk_esports_slot_rooms';
         const RSK_SLOT_LISTS_PATH = 'rsk_esports_slot_lists';
+        const RSK_SLOT_RULES_PATH = 'rsk_esports_slot_rules';
+        const DEFAULT_SLOT_RULES_TEXT = `*RULES*
+
+_‼️ Read all rules carefully and strictly follow ‼️_
+
+1. *Merit < 80 = DIRECT KICK/DISQUALIFIED. Low level IDs must be informed beforehand*, otherwise management not responsible if kicked. *Only mobile devices are allowed. Emulator, ipad, tablet etc. _NOT_ allowed*
+2. *Result screenshot must*, management can ask anytime. *If failed to provide, No SS = No points*
+3. *Sit in allotted slot*, otherwise management not responsible if kicked.
+4. *Join with \`ALL 4 PLAYERS\` before last kick time*, otherwise management not responsible if you joined with less than 4 men and someone else sits in your slot and ruins your game or gives free finish to other team.
+5. If management misses to provide IDP OR kicks mistakenly and starts the match, fix 4-5 compensation points, no bargain.
+• (i) _Due to ongoing network glitches, you may get an alert saying \`'You have been removed from the room'\` OR \`'Room has been disbanded'\` etc. which is not reality. *Only the screenshot showing waiting timer to rejoin the room with the clip showing entering IDP and password will be considered as valid proof* that you were kicked by management_
+6. POV Rules: *Record full RAW POV* of all players showing game opening from play store / app store and apps running in background and 'About Phone' section from device settings.
+7. For asking POV, must provide both your POV and deathcam mandatorily. In this case, if management fails to provide alleged team POV, compensation points at management discretion (if management finds allegations as genuine). To avoid misuse of Rule 7 by sending irrelevant and non-sus POVs and deathcams, following compensation rules will be applicable:
+• (i) If alleged team is not in top 4, *ZERO* compensation points
+• (ii) If alleged team in top 4, and doesn't send POV(s), *4 compensation points*
+• (iii) On further investigation, If alleged team is disqualified for \`hacking\`, *1* point per player finished by them (only to teams who reported to mgm)
+• (iv) Compensation points can vary subject to mgm decision, no bargain accepted from teams
+8. *Picking, Attempting to use OR Self-Revive using Self AED is prohibited*, 0 points to guilty, no compensation for victim
+9. *Emergency pickup NOT Allowed*, 0 points for that game
+• (i) *Mortar NOT Allowed*, 0 points on usage, +5 to victim. *DEATHCAM MUST*
+10. If found guilty for hacking, direct permanent BAN
+11. If your team has allegations or anything seems suspicious, management reserves the right to ask anyone for POV, OR call for device check anytime even on provision of POV, no excuses tolerated. *Failure to provide POV = No PP*. In certain cases, 0 points will be awarded instead of disqualification
+12. In case of tie, *No. of WWCDs > Position Points > Finishes Points > Last Match Position*
+13. In case of any dispute OR unforeseen circumstances OR cases not mentioned in rules, management decision would be final
+
+> Guidelines
+1. No requests for device check will be accepted without POV ('About Phone' section must be shown in POV)
+2. No POV = Direct DISQUALIFY, No Device Check OR Argument`;
+        let slRulesText = DEFAULT_SLOT_RULES_TEXT;
+
+        // WhatsApp-style *bold* / _italic_ ko HTML me convert karta hai (pehle HTML-escape karke, XSS-safe)
+        function slRulesToHtml(text) {
+            let t = esc(text || '');
+            t = t.replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+            t = t.replace(/_([^_\n]+)_/g, '<i>$1</i>');
+            t = t.replace(/\n/g, '<br>');
+            return t;
+        }
+        function renderSlotRulesEverywhere() {
+            const view = document.getElementById('slotRulesContent');
+            if (view) view.innerHTML = slRulesToHtml(slRulesText);
+            const ta = document.getElementById('adminSlotRulesText');
+            if (ta && document.activeElement !== ta) ta.value = slRulesText;
+        }
+        async function saveSlotRulesText() {
+            if (!slRequireAdmin()) return;
+            const ta = document.getElementById('adminSlotRulesText');
+            const text = (ta?.value || '').trim();
+            const status = document.getElementById('adminSlotRulesStatus');
+            if (!text) { if (status) { status.textContent = 'Rules text khaali nahi ho sakta!'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; } return; }
+            if (!slFbOk()) { if (status) { status.textContent = 'Realtime database connect nahi hai.'; status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; } return; }
+            try {
+                await rskFirebaseDb.ref(RSK_SLOT_RULES_PATH).set(text);
+                if (status) { status.textContent = '✅ Rules save ho gaye, sabhi viewers ko turant naya text dikhega.'; status.className = 'text-xs text-center font-rajdhani text-emerald-400 mt-1'; }
+            } catch (e) {
+                console.error(e);
+                if (status) { status.textContent = '❌ Save nahi hua: ' + slErrText(e); status.className = 'text-xs text-center font-rajdhani text-red-400 mt-1'; }
+            }
+        }
 
         function slGroupKey(slot, lobby) {
             return String(slot).replace(/[^A-Za-z0-9]+/g, '_') + '__' + String(lobby).replace(/[^A-Za-z0-9]+/g, '_');
@@ -3365,6 +3453,13 @@
             slShowError('');
             slShowStep('code');
             document.getElementById('slotListModal').classList.remove('hidden');
+        }
+        function openSlotRulesModal() {
+            renderSlotRulesEverywhere();
+            document.getElementById('slotRulesModal')?.classList.remove('hidden');
+        }
+        function closeSlotRulesModal() {
+            document.getElementById('slotRulesModal')?.classList.add('hidden');
         }
         function closeSlotListModal() {
             slDetachViewer(); slViewerCode = '';
@@ -3475,12 +3570,16 @@
             if (item.type === 'image') {
                 return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3">${head}<img src="${esc(item.image)}" class="w-full rounded-lg object-contain" alt="Slot list"></div>`;
             }
-            const rows = Array.isArray(item.rows) ? item.rows : Object.values(item.rows || {});
+            const allRows = Array.isArray(item.rows) ? item.rows : Object.values(item.rows || {});
+            // Admin ne agar "viewer ko dikhao slot #" set kiya hai to usse pehle wale slots viewer ko nahi dikhenge,
+            // lekin numbering unki asli slot number hi rahegi (renumber 1 se nahi hoga).
+            const startFrom = Math.max(1, parseInt(item.startFrom, 10) || 1);
+            const rows = allRows.slice(startFrom - 1);
             return `<div class="bg-black/80 border border-esports-lightPurple rounded-xl p-3">${head}
                 <div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40">
                     <table class="w-full text-[12px] font-rajdhani font-bold border-collapse">
                         <thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2 text-center w-16">SLOT</th><th class="px-2 py-2 text-left">TEAM NAME</th></tr></thead>
-                        <tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r, i) => `<tr><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${i + 1}</td><td class="px-2 py-2">${esc(r && r.teamName)}</td></tr>`).join('')}</tbody>
+                        <tbody class="divide-y divide-esports-lightPurple/30">${rows.map((r, i) => `<tr><td class="px-2 py-2 text-center font-extrabold text-esports-yellow">${startFrom + i}</td><td class="px-2 py-2">${esc(r && r.teamName)}</td></tr>`).join('')}</tbody>
                     </table>
                 </div>
             </div>`;
@@ -3488,12 +3587,12 @@
 
         function slInfoRow(label, value, icon) {
             const has = String(value || '').trim() !== '';
-            return `<div class="bg-black/60 border border-esports-lightPurple rounded-lg px-2.5 py-1.5">
-                <p class="text-[10px] font-rajdhani font-bold text-gray-400 uppercase mb-0.5"><i class="fa-solid ${icon} text-esports-yellow mr-1"></i>${label}</p>
-                ${has ? `<div class="flex items-center justify-between gap-3">
-                    <span class="font-mono text-base font-bold text-amber-300 break-all" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
-                    <button type="button" data-copy="${esc(value)}" onclick="slCopyFrom(this)" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-rajdhani text-[11px] font-bold px-2 py-1 rounded-md"><i class="fa-regular fa-copy mr-1"></i>COPY</button>
-                </div>` : `<p class="text-amber-400 font-teko text-base tracking-wider animate-pulse">COMING SOON...</p>`}
+            return `<div class="bg-black/60 border border-esports-lightPurple rounded-lg px-2 py-1">
+                <p class="text-[9px] font-rajdhani font-bold text-gray-400 uppercase mb-0.5 leading-none"><i class="fa-solid ${icon} text-esports-yellow mr-1"></i>${label}</p>
+                ${has ? `<div class="flex items-center justify-between gap-2">
+                    <span class="font-mono text-sm font-bold text-amber-300 break-all" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
+                    <button type="button" data-copy="${esc(value)}" onclick="slCopyFrom(this)" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-rajdhani text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none"><i class="fa-regular fa-copy mr-1"></i>COPY</button>
+                </div>` : `<p class="text-amber-400 font-teko text-sm tracking-wider animate-pulse leading-none">COMING SOON...</p>`}
             </div>`;
         }
 
@@ -3511,14 +3610,16 @@
         function slMatchBlock(n, m) {
             const idpTime = String(m.idpTime || '').trim();
             const startTime = String(m.startTime || '').trim();
-            return `<div class="border border-esports-yellow/40 rounded-xl p-2 space-y-1.5 bg-esports-purple/20">
-                <div class="flex flex-wrap items-center gap-2">
-                    <p class="font-teko text-lg font-bold leading-none"><span class="bg-esports-yellow text-black px-1.5 rounded">MATCH ${n}</span></p>
-                    <span class="font-rajdhani text-[11px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-2 py-0.5"><i class="fa-solid fa-clock mr-1"></i>IDP TIME: ${idpTime ? esc(idpTime) : 'COMING SOON...'}</span>
-                    <span class="font-rajdhani text-[11px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-2 py-0.5"><i class="fa-solid fa-flag-checkered mr-1"></i>START TIME: ${startTime ? esc(startTime) : 'COMING SOON...'}</span>
+            return `<div class="border border-esports-yellow/40 rounded-lg p-1.5 space-y-1 bg-esports-purple/20">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <p class="font-teko text-base font-bold leading-none"><span class="bg-esports-yellow text-black px-1 py-0.5 rounded">MATCH ${n}</span></p>
+                    <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-clock mr-1"></i>IDP: ${idpTime ? esc(idpTime) : 'COMING SOON...'}</span>
+                    <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-flag-checkered mr-1"></i>START: ${startTime ? esc(startTime) : 'COMING SOON...'}</span>
                 </div>
-                ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
-                ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
+                <div class="grid grid-cols-2 gap-1.5">
+                    ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
+                    ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
+                </div>
             </div>`;
         }
 
@@ -3536,7 +3637,10 @@
                     <p class="font-teko text-2xl font-bold leading-none"><span class="text-esports-yellow">${esc(r.slot)}</span> <span class="text-white">• ${esc(r.lobby)}</span>${r.date ? ` <span class="text-white">• ${esc(r.date)}</span>` : ''}</p>
                 </div>
                 <div>
-                    <p class="text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-2"><i class="fa-solid fa-clipboard-list mr-1"></i>SLOT LIST</p>
+                    <p class="text-xs font-rajdhani font-bold text-esports-yellow uppercase mb-2 flex items-center justify-between gap-2">
+                        <span><i class="fa-solid fa-clipboard-list mr-1"></i>SLOT LIST</span>
+                        <button type="button" onclick="openSlotRulesModal()" class="bg-esports-yellow hover:bg-amber-400 text-black text-[10px] font-teko tracking-wide font-bold px-2 py-1 rounded-md leading-none"><i class="fa-solid fa-scroll mr-1"></i>READ RULE</button>
+                    </p>
                     <div class="space-y-3 overflow-y-auto" style="max-height:45vh">${listHtml}</div>
                 </div>
                 ${slRoomMatches(r).map((m, i) => slMatchBlock(i + 1, m)).join('')}
@@ -3828,7 +3932,7 @@
                 const lerr = adminSlotErr.lists ? `<p class="text-xs font-bold text-red-400 mb-2">${esc(adminSlotErr.lists)}</p>` : '';
                 lb.innerHTML = lerr + (items.length ? items.map(r => `<div class="bg-black/60 border border-esports-lightPurple p-3 rounded-lg flex items-center justify-between gap-3">
                     <div class="min-w-0"><p class="text-xs font-bold text-esports-yellow">${esc(r.lobby)} • ${esc(r.slot)}</p>
-                    <p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type === 'pc' ? '.PC SLOT LIST' : 'PHOTO SLOT LIST'}</p>
+                    <p class="text-[10px] text-gray-300">Date: ${esc(r.date)} • ${r.type === 'pc' ? '.PC SLOT LIST' : 'PHOTO SLOT LIST'}${r.type === 'pc' && Number(r.startFrom) > 1 ? ` • <span class="text-amber-400">Viewer ko slot #${esc(String(r.startFrom))} se dikhega</span>` : ''}</p>
                     <p class="text-[10px] text-gray-400 truncate">${esc(r.fileName || '')}</p></div>
                     <div class="flex gap-2 shrink-0">${r.type === 'pc' ? `<button type="button" onclick="editSlotList('${esc(r.id)}')" class="bg-sky-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">EDIT</button>` : ''}<button type="button" onclick="prepareReplaceSlotList('${esc(r.id)}')" class="bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded-lg">REPLACE</button><button type="button" onclick="deleteSlotList('${esc(r.id)}')" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">DELETE</button></div></div>`).join('')
                     : (adminSlotErr.lists ? '' : '<p class="text-xs text-gray-400">Abhi tak koi slot list upload nahi hui hai.</p>'));
@@ -3869,7 +3973,7 @@
                 const rd = new FileReader();
                 rd.onload = e => {
                     if (type === 'pc') {
-                        try { const p = parseSlotPcFile(e.target.result); slPendingPc.push({ fileName: file.name, rows: p.rows, tournamentName: p.tournamentName, sourceEvent: p.sourceEvent }); }
+                        try { const p = parseSlotPcFile(e.target.result); slPendingPc.push({ fileName: file.name, rows: p.rows, tournamentName: p.tournamentName, sourceEvent: p.sourceEvent, startFrom: 1 }); }
                         catch (err) { errors.push(file.name + ': ' + err.message); }
                         finish();
                     } else {
@@ -3889,6 +3993,21 @@
         function slAddPendingTeam(pi) { const r = slPendingPc[pi]; if (!r) return; r.rows.push({ teamName: 'NEW TEAM ' + (r.rows.length + 1) }); slRenderPending(); }
         function slRemovePendingTeam(pi, ri) { slPendingPc[pi]?.rows.splice(ri, 1); slRenderPending(); }
         function slEditPendingTeam(pi, ri, v) { const r = slPendingPc[pi]?.rows?.[ri]; if (r) r.teamName = v; }
+        // Viewer ko slot list kahan se dikhani hai (e.g. 6 se aage, 1-5 hide) — admin set karta hai
+        function slSetPendingStartFrom(pi, v) {
+            const r = slPendingPc[pi]; if (!r) return;
+            let n = parseInt(v, 10); if (!n || n < 1) n = 1;
+            r.startFrom = n;
+        }
+        // Team ko ek slot upar ya neeche move karo (dir: -1 = upar, +1 = neeche)
+        function slMovePendingTeam(pi, ri, dir) {
+            const rows = slPendingPc[pi]?.rows;
+            if (!rows) return;
+            const newIndex = ri + dir;
+            if (newIndex < 0 || newIndex >= rows.length) return;
+            [rows[ri], rows[newIndex]] = [rows[newIndex], rows[ri]];
+            slRenderPending();
+        }
 
         function slRenderPending() {
             const panel = document.getElementById('adminSlPreviewPanel'), box = document.getElementById('adminSlPreviewList');
@@ -3898,11 +4017,11 @@
             let html = '';
             slPendingPc.forEach((res, pi) => {
                 html += `<div class="bg-black/70 border border-esports-lightPurple rounded-xl p-3">
-                    <div class="flex items-center justify-between gap-2 mb-2"><div><p class="text-xs font-bold text-esports-yellow">.PC SLOT LIST PREVIEW</p><p class="text-[10px] text-gray-400 truncate">${esc(res.fileName)}</p></div>
-                    <div class="flex gap-2"><button type="button" onclick="slAddPendingTeam(${pi})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-user-plus mr-1"></i>ADD NEW TEAM</button><button type="button" onclick="slRemovePending('pc',${pi})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE</button></div></div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2"><div><p class="text-xs font-bold text-esports-yellow">.PC SLOT LIST PREVIEW</p><p class="text-[10px] text-gray-400 truncate">${esc(res.fileName)}</p></div>
+                    <div class="flex flex-wrap gap-2 items-center"><label class="flex items-center gap-1 bg-black/60 border border-esports-lightPurple rounded-lg px-2 py-1" title="Viewer ko slot list yahan se dikhegi, isse pehle wale slot hide rahenge"><span class="text-[9px] font-bold text-gray-300 whitespace-nowrap uppercase">Viewer ko dikhao slot #</span><input type="number" min="1" value="${res.startFrom || 1}" onchange="slSetPendingStartFrom(${pi}, this.value)" class="w-14 bg-black/70 border border-esports-lightPurple rounded px-1 py-0.5 text-white text-xs text-center"><span class="text-[9px] text-gray-400 whitespace-nowrap">SE AAGE</span></label><button type="button" onclick="slAddPendingTeam(${pi})" class="bg-esports-yellow hover:bg-amber-400 text-black text-xs font-bold px-3 py-1.5 rounded-lg"><i class="fa-solid fa-user-plus mr-1"></i>ADD NEW TEAM</button><button type="button" onclick="slRemovePending('pc',${pi})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE</button></div></div>
                     <div class="overflow-x-auto rounded-lg border border-esports-lightPurple/40"><table class="w-full min-w-[360px] text-[11px] font-rajdhani font-bold border-collapse">
                     <thead><tr class="bg-esports-purple text-esports-yellow"><th class="px-2 py-2">SLOT</th><th class="px-2 py-2 text-left">TEAM NAME</th><th class="px-2 py-2"></th></tr></thead>
-                    <tbody class="divide-y divide-esports-lightPurple/30">${res.rows.map((r, ri) => `<tr><td class="px-2 py-2 text-center text-esports-yellow">${ri + 1}</td><td class="px-2 py-1"><input value="${esc(r.teamName)}" onchange="slEditPendingTeam(${pi},${ri},this.value)" class="w-full min-w-[150px] bg-black/60 border border-esports-lightPurple rounded px-2 py-1 text-white"></td><td class="px-2 py-1 text-center"><button type="button" onclick="slRemovePendingTeam(${pi},${ri})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+                    <tbody class="divide-y divide-esports-lightPurple/30">${res.rows.map((r, ri) => `<tr><td class="px-2 py-2 text-center text-esports-yellow">${ri + 1}</td><td class="px-2 py-1"><input value="${esc(r.teamName)}" onchange="slEditPendingTeam(${pi},${ri},this.value)" class="w-full min-w-[150px] bg-black/60 border border-esports-lightPurple rounded px-2 py-1 text-white"></td><td class="px-2 py-1 text-center"><div class="flex items-center justify-center gap-2"><button type="button" onclick="slMovePendingTeam(${pi},${ri},-1)" ${ri === 0 ? 'disabled' : ''} title="Upar move karein" class="text-esports-yellow hover:text-amber-300 disabled:opacity-20 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-up"></i></button><button type="button" onclick="slMovePendingTeam(${pi},${ri},1)" ${ri === res.rows.length - 1 ? 'disabled' : ''} title="Neeche move karein" class="text-esports-yellow hover:text-amber-300 disabled:opacity-20 disabled:cursor-not-allowed"><i class="fa-solid fa-arrow-down"></i></button><button type="button" onclick="slRemovePendingTeam(${pi},${ri})" title="Delete" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button></div></td></tr>`).join('')}</tbody></table></div></div>`;
             });
             slPendingImg.forEach((res, ii) => {
                 html += `<div class="bg-black/70 border border-esports-lightPurple rounded-xl p-3"><div class="flex items-center justify-between gap-2 mb-2"><div><p class="text-xs font-bold text-esports-yellow">JPG / PNG PREVIEW</p><p class="text-[10px] text-gray-400 truncate">${esc(res.fileName)}</p></div><button type="button" onclick="slRemovePending('image',${ii})" class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">REMOVE</button></div><img src="${res.image}" class="w-full max-h-[55vh] object-contain rounded-lg border border-esports-lightPurple/50 bg-black" alt="Slot list preview"></div>`;
@@ -3925,7 +4044,8 @@
                 if (type === 'pc') {
                     const rows = (res.rows || []).map(r => ({ teamName: String(r.teamName || '').trim() })).filter(r => r.teamName);
                     if (!rows.length) return alert(res.fileName + ': koi team nahi hai.');
-                    updates[gk + '/' + id] = { id, type: 'pc', lobby, slot, date, rows, tournamentName: res.tournamentName || '', sourceEvent: res.sourceEvent || '', fileName: res.fileName || '' };
+                    const startFrom = Math.max(1, parseInt(res.startFrom, 10) || 1);
+                    updates[gk + '/' + id] = { id, type: 'pc', lobby, slot, date, rows, startFrom, tournamentName: res.tournamentName || '', sourceEvent: res.sourceEvent || '', fileName: res.fileName || '' };
                 } else {
                     updates[gk + '/' + id] = { id, type: 'image', lobby, slot, date, image: res.image, fileName: res.fileName || '' };
                 }
@@ -3944,7 +4064,7 @@
             const r = slAllLists().find(x => x.id === id); if (!r || r.type !== 'pc') return;
             slClearPending();
             const rows = (Array.isArray(r.rows) ? r.rows : Object.values(r.rows || {})).map(x => ({ teamName: String((x && x.teamName) || '') }));
-            slPendingPc = [{ fileName: r.fileName || '', rows, tournamentName: r.tournamentName || '', sourceEvent: r.sourceEvent || '' }];
+            slPendingPc = [{ fileName: r.fileName || '', rows, tournamentName: r.tournamentName || '', sourceEvent: r.sourceEvent || '', startFrom: Math.max(1, parseInt(r.startFrom, 10) || 1) }];
             document.getElementById('adminSlLobby').value = r.lobby;
             document.getElementById('adminSlSlot').value = r.slot;
             document.getElementById('adminSlDateInput').value = r.date || '';
