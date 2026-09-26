@@ -1107,7 +1107,7 @@
                     </select>
                 </div>
                 
-                <div id="adminNotifySpecificFields" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div id="adminNotifySpecificFields" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Lobby *</label>
                         <select id="adminNotifyLobby" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
@@ -1134,10 +1134,16 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Code *</label>
-                        <select id="adminNotifySpecificCode" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
-                            <option value="">-- Select Lobby/Slot/Type pehle --</option>
+                        <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Date *</label>
+                        <select id="adminNotifyDate" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                            <option value="">-- Sabhi Dates --</option>
                         </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Code (Auto-fill / Edit) *</label>
+                        <input type="text" id="adminNotifySpecificCode" list="adminNotifyCodeList" placeholder="Code yahan aayega" autocomplete="off" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <datalist id="adminNotifyCodeList"></datalist>
+                        <p id="adminNotifyCodeHint" class="text-[10px] text-gray-400 mt-1">Lobby/Slot/Date choose karne par code apne aap fill ho jayega, aap ise edit bhi kar sakte hain.</p>
                     </div>
                 </div>
                 
@@ -1152,9 +1158,14 @@
                     <p class="text-[10px] text-gray-400 mt-1">Key sirf ek baar daalein, browser me save ho jayegi.</p>
                 </div>
                 
-                <button type="button" onclick="sendAdminNotification()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">
-                    <i class="fa-solid fa-paper-plane mr-2"></i>SEND NOTIFICATION
-                </button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button type="button" onclick="sendAdminNotification()" class="md:col-span-2 w-full bg-emerald-500 hover:bg-emerald-400 text-black font-teko text-2xl font-bold py-2 rounded-xl">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>SEND NOTIFICATION
+                    </button>
+                    <button type="button" onclick="checkOneSignalSubscribers()" class="w-full bg-esports-lightPurple hover:bg-esports-purple text-white font-rajdhani font-bold text-sm py-2 rounded-xl border border-emerald-400">
+                        <i class="fa-solid fa-users mr-2"></i>CHECK SUBSCRIBERS
+                    </button>
+                </div>
                 
                 <p id="adminNotifyStatus" class="text-xs text-center font-rajdhani text-gray-400"></p>
             </div>
@@ -4001,38 +4012,75 @@
             }
         }
 
-        // Available codes load karo (Lobby + Slot + Type ke hisaab se)
+        // Available codes load karo (Lobby + Slot + Type + Date ke hisaab se)
+        // Date dropdown khud-ba-khud available dates se bharta hai, aur Code field
+        // auto-fill hone ke baad bhi admin manually edit/type kar sakta hai.
         async function loadAvailableCodes() {
             const lobby = document.getElementById('adminNotifyLobby').value;
             const slot = document.getElementById('adminNotifySlot').value;
             const type = document.getElementById('adminNotifyType').value;
-            const select = document.getElementById('adminNotifySpecificCode');
-            
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Loading codes... --</option>';
-            
+            const dateSelect = document.getElementById('adminNotifyDate');
+            const codeInput = document.getElementById('adminNotifySpecificCode');
+            const codeList = document.getElementById('adminNotifyCodeList');
+            const hint = document.getElementById('adminNotifyCodeHint');
+
+            if (!codeInput) return;
+            if (hint) { hint.textContent = 'Codes load ho rahe hain...'; hint.className = 'text-[10px] text-gray-400 mt-1'; }
+
             try {
-                let codes = [];
+                let allCodes = [];
                 if (type === 'result') {
                     const snap = await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
                     const data = snap.val() || {};
-                    codes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
+                    allCodes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
                 } else {
                     const snap = await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).once('value');
                     const data = snap.val() || {};
-                    codes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
+                    allCodes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
                 }
-                
-                if (codes.length === 0) {
-                    select.innerHTML = '<option value="">-- Koi code nahi mila --</option>';
+
+                // Date dropdown ko available dates se refresh karo, purana selection bachaate hue
+                if (dateSelect) {
+                    const uniqueDates = [...new Set(allCodes.map(c => c.date).filter(Boolean))].sort().reverse();
+                    const prevSelectedDate = dateSelect.value;
+                    dateSelect.innerHTML = '<option value="">-- Sabhi Dates --</option>' +
+                        uniqueDates.map(d => `<option value="${d}">${d}</option>`).join('');
+                    if (uniqueDates.includes(prevSelectedDate)) {
+                        dateSelect.value = prevSelectedDate;
+                    }
+                }
+
+                const finalDate = dateSelect ? dateSelect.value : '';
+                const filteredCodes = finalDate ? allCodes.filter(c => c.date === finalDate) : allCodes;
+
+                if (filteredCodes.length === 0) {
+                    codeList.innerHTML = '';
+                    if (hint) {
+                        hint.textContent = '⚠️ Is Lobby/Slot/Date ke liye koi code nahi mila. Neeche box me khud se code type kar sakte hain.';
+                        hint.className = 'text-[10px] text-amber-400 mt-1';
+                    }
                     return;
                 }
-                
-                select.innerHTML = '<option value="">-- Select Code --</option>' + 
-                    codes.map(c => `<option value="${c.code}">${c.code} (Date: ${c.date || 'N/A'})</option>`).join('');
+
+                codeList.innerHTML = filteredCodes.map(c => `<option value="${c.code}">${c.code} (Date: ${c.date || 'N/A'})</option>`).join('');
+
+                // Agar current value khaali hai ya naye list me valid nahi hai, to pehla wala auto-fill kar do.
+                // Warna admin ne khud jo type/edit kiya hai wo waisa hi rahega.
+                const currentVal = codeInput.value.trim();
+                const stillValid = filteredCodes.some(c => c.code === currentVal);
+                if (!currentVal || !stillValid) {
+                    codeInput.value = filteredCodes[0].code;
+                }
+                if (hint) {
+                    hint.textContent = `✅ ${filteredCodes.length} code(s) mile aur auto-fill ho gaya hai. Chahe to isse edit/badal bhi sakte hain.`;
+                    hint.className = 'text-[10px] text-emerald-400 mt-1';
+                }
             } catch (e) {
                 console.error("Codes load failed:", e);
-                select.innerHTML = '<option value="">-- Load failed --</option>';
+                if (hint) {
+                    hint.textContent = '❌ Codes load fail ho gaye (' + (e && e.message ? e.message : e) + '). Khud se code type kar sakte hain.';
+                    hint.className = 'text-[10px] text-red-400 mt-1';
+                }
             }
         }
 
@@ -4040,14 +4088,15 @@
             const status = document.getElementById('adminNotifyStatus');
             const target = document.getElementById('adminNotifyTarget').value;
             const type = document.getElementById('adminNotifyType').value;
-            const code = document.getElementById('adminNotifySpecificCode').value;
+            const codeField = document.getElementById('adminNotifySpecificCode');
+            const code = codeField ? codeField.value.trim() : '';
             const message = document.getElementById('adminNotifyMessage').value.trim();
             const restKeyInput = document.getElementById('adminNotifyRestKey');
             const restKey = restKeyInput.value.trim() || localStorage.getItem(RSK_ONESIGNAL_KEY_STORAGE);
             
             if (!message) { status.textContent = "Message likhein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             if (!restKey) { status.textContent = "REST API Key daalein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
-            if (target === 'specific' && !code) { status.textContent = "Specific code select karein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
+            if (target === 'specific' && !code) { status.textContent = "Specific code likhein ya select karein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             
             localStorage.setItem(RSK_ONESIGNAL_KEY_STORAGE, restKey);
             status.textContent = "Sending...";
@@ -4085,12 +4134,69 @@
                     status.textContent = `✅ Notification bhej di gayi! (${result.recipients || 0} viewers ko)`;
                     status.className = "text-xs text-center font-rajdhani text-emerald-400";
                 } else {
-                    status.textContent = "❌ Error: " + (result.errors ? result.errors.join(", ") : "Unknown error");
+                    const rawError = result.errors
+                        ? (Array.isArray(result.errors) ? result.errors.join(", ") : JSON.stringify(result.errors))
+                        : "Unknown error";
+                    status.textContent = "❌ " + explainOneSignalError(rawError, target, code);
                     status.className = "text-xs text-center font-rajdhani text-red-400";
                 }
             } catch (e) {
                 console.error("Notification failed:", e);
                 status.textContent = "❌ Notification failed: " + e.message;
+                status.className = "text-xs text-center font-rajdhani text-red-400";
+            }
+        }
+
+        // OneSignal ke technical errors ko samajhne layak Hinglish message me badalta hai
+        function explainOneSignalError(rawError, target, code) {
+            if (/not subscribed/i.test(rawError)) {
+                if (target === 'all') {
+                    return "Abhi koi bhi visitor push notification ke liye subscribe/allow nahi hai. 'CHECK SUBSCRIBERS' button dabakar dekh lein ya visitors ko site khol kar notification allow karne ko kahein.";
+                }
+                return `Code "${code}" wale viewer ne abhi tak notification allow nahi ki, ya wo subscribe nahi hai. Sahi code check karein ya thodi der baad try karein.`;
+            }
+            if (/invalid.*app_id|app_id.*invalid/i.test(rawError)) {
+                return "App ID galat hai ya OneSignal dashboard ke app se match nahi kar raha.";
+            }
+            if (/auth|unauthorized|401/i.test(rawError)) {
+                return "REST API Key galat hai ya expire ho gayi hai. OneSignal dashboard se sahi key dobara daalein.";
+            }
+            return rawError;
+        }
+
+        // Diagnostic: OneSignal app ke total subscribers check karo (Send karne se pehle confirm karne ke liye)
+        async function checkOneSignalSubscribers() {
+            const status = document.getElementById('adminNotifyStatus');
+            const restKeyInput = document.getElementById('adminNotifyRestKey');
+            const restKey = restKeyInput.value.trim() || localStorage.getItem(RSK_ONESIGNAL_KEY_STORAGE);
+
+            if (!restKey) { status.textContent = "REST API Key daalein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
+            localStorage.setItem(RSK_ONESIGNAL_KEY_STORAGE, restKey);
+
+            status.textContent = "Subscribers check ho rahe hain...";
+            status.className = "text-xs text-center font-rajdhani text-amber-400";
+
+            try {
+                const response = await fetch(`https://onesignal.com/api/v1/apps/${RSK_ONESIGNAL_APP_ID}`, {
+                    headers: { "Authorization": "Basic " + restKey }
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    const messagable = result.messagable_players ?? 0;
+                    const total = result.players ?? 0;
+                    status.textContent = `📊 Total Subscribers: ${messagable} messagable (kul players: ${total})`;
+                    status.className = messagable > 0
+                        ? "text-xs text-center font-rajdhani text-emerald-400"
+                        : "text-xs text-center font-rajdhani text-amber-400";
+                } else {
+                    const rawError = result.errors ? (Array.isArray(result.errors) ? result.errors.join(", ") : JSON.stringify(result.errors)) : "Key check failed";
+                    status.textContent = "❌ " + explainOneSignalError(rawError, 'all', '');
+                    status.className = "text-xs text-center font-rajdhani text-red-400";
+                }
+            } catch (e) {
+                console.error("Subscriber check failed:", e);
+                status.textContent = "❌ Failed: " + e.message;
                 status.className = "text-xs text-center font-rajdhani text-red-400";
             }
         }
@@ -4102,6 +4208,9 @@
         renderMainNoticePopup();
         renderRank1Ticker();
         renderTopBannerAndFullDaySchedule();
+        setTimeout(function() {
+            try { loadAvailableCodes(); } catch (e) { console.error('Initial loadAvailableCodes failed:', e); }
+        }, 800);
     </script>
 </body>
 </html>
