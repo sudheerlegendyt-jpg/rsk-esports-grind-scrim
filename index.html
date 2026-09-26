@@ -1026,10 +1026,10 @@
                 </h3>
                 <p class="text-xs font-rajdhani text-gray-300">Viewer ko notification bhejein. Sirf usi code wale viewers ko jayegi jo select karenge.</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Lobby *</label>
-                        <select id="adminNotifyLobby" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <select id="adminNotifyLobby" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
                             <option value="L1">L1</option>
                             <option value="L2">L2</option>
                             <option value="L3">L3</option>
@@ -1037,7 +1037,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Time Slot *</label>
-                        <select id="adminNotifySlot" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <select id="adminNotifySlot" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
                             <option value="1-3 PM">1:00 PM - 3:00 PM</option>
                             <option value="3-5 PM">3:00 PM - 5:00 PM</option>
                             <option value="7-9 PM">7:00 PM - 9:00 PM</option>
@@ -1047,9 +1047,15 @@
                     </div>
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Notification Type *</label>
-                        <select id="adminNotifyType" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <select id="adminNotifyType" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
                             <option value="result">Result Uploaded</option>
                             <option value="room">Room ID & Pass</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Code *</label>
+                        <select id="adminNotifySpecificCode" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                            <option value="">-- Select Lobby/Slot/Type pehle --</option>
                         </select>
                     </div>
                 </div>
@@ -2112,13 +2118,21 @@
                 rsStartLiveResultWatch(code);
                 registerRskNotificationForCode('result', code);
 
-                // OneSignal: Result code tag save karo
+                // OneSignal: Permission maango aur Result code tag save karo
                 OneSignalDeferred.push(async function(OneSignal) {
                     try {
-                        const playerId = await OneSignal.getUserId();
-                        if (playerId) {
-                            await OneSignal.sendTag("result_code_" + code, "subscribed");
-                            console.log("OneSignal: Result tag saved for code:", code);
+                        // Pehle notification permission maango
+                        const permission = await OneSignal.Notifications.requestPermission();
+                        console.log("OneSignal permission:", permission);
+                        
+                        if (permission) {
+                            const playerId = await OneSignal.getUserId();
+                            if (playerId) {
+                                await OneSignal.sendTag("result_code_" + code, "subscribed");
+                                console.log("OneSignal: Result tag saved for code:", code);
+                            }
+                        } else {
+                            console.warn("OneSignal: Permission denied by user");
                         }
                     } catch (e) {
                         console.warn("OneSignal tag save failed:", e);
@@ -2394,6 +2408,7 @@
             renderAdminRank1Announcements();
             checkAdminNotificationAlert();
             setTimeout(loadOneSignalRestKey, 500);
+            setTimeout(loadAvailableCodes, 500);
             document.getElementById('adminDashboard').classList.remove('hidden');
         }
 
@@ -3286,13 +3301,21 @@
                 slAttachViewer(code);
                 registerRskNotificationForCode('slot', code);
 
-                // OneSignal: Room code tag save karo
+                // OneSignal: Permission maango aur Room code tag save karo
                 OneSignalDeferred.push(async function(OneSignal) {
                     try {
-                        const playerId = await OneSignal.getUserId();
-                        if (playerId) {
-                            await OneSignal.sendTag("room_code_" + code, "subscribed");
-                            console.log("OneSignal: Room tag saved for code:", code);
+                        // Pehle notification permission maango
+                        const permission = await OneSignal.Notifications.requestPermission();
+                        console.log("OneSignal permission:", permission);
+                        
+                        if (permission) {
+                            const playerId = await OneSignal.getUserId();
+                            if (playerId) {
+                                await OneSignal.sendTag("room_code_" + code, "subscribed");
+                                console.log("OneSignal: Room tag saved for code:", code);
+                            }
+                        } else {
+                            console.warn("OneSignal: Permission denied by user");
                         }
                     } catch (e) {
                         console.warn("OneSignal tag save failed:", e);
@@ -3866,42 +3889,56 @@
             if (saved && input) input.value = saved;
         }
 
-        async function sendAdminNotification() {
-            const status = document.getElementById('adminNotifyStatus');
+        // Available codes load karo (Lobby + Slot + Type ke hisaab se)
+        async function loadAvailableCodes() {
             const lobby = document.getElementById('adminNotifyLobby').value;
             const slot = document.getElementById('adminNotifySlot').value;
             const type = document.getElementById('adminNotifyType').value;
+            const select = document.getElementById('adminNotifySpecificCode');
+            
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Loading codes... --</option>';
+            
+            try {
+                let codes = [];
+                if (type === 'result') {
+                    const snap = await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
+                    const data = snap.val() || {};
+                    codes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
+                } else {
+                    const snap = await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).once('value');
+                    const data = snap.val() || {};
+                    codes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
+                }
+                
+                if (codes.length === 0) {
+                    select.innerHTML = '<option value="">-- Koi code nahi mila --</option>';
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">-- Select Code --</option>' + 
+                    codes.map(c => `<option value="${c.code}">${c.code} (Date: ${c.date || 'N/A'})</option>`).join('');
+            } catch (e) {
+                console.error("Codes load failed:", e);
+                select.innerHTML = '<option value="">-- Load failed --</option>';
+            }
+        }
+
+        async function sendAdminNotification() {
+            const status = document.getElementById('adminNotifyStatus');
+            const type = document.getElementById('adminNotifyType').value;
+            const code = document.getElementById('adminNotifySpecificCode').value;
             const message = document.getElementById('adminNotifyMessage').value.trim();
             const restKeyInput = document.getElementById('adminNotifyRestKey');
             const restKey = restKeyInput.value.trim() || localStorage.getItem(RSK_ONESIGNAL_KEY_STORAGE);
             
             if (!message) { status.textContent = "Message likhein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             if (!restKey) { status.textContent = "REST API Key daalein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
+            if (!code) { status.textContent = "Specific code select karein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             
             localStorage.setItem(RSK_ONESIGNAL_KEY_STORAGE, restKey);
             status.textContent = "Sending...";
             status.className = "text-xs text-center font-rajdhani text-amber-400";
-            
-            let code = "";
-            try {
-                if (type === 'result') {
-                    const snap = await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
-                    const data = snap.val() || {};
-                    const found = Object.values(data).find(r => r && r.lobby === lobby && r.slot === slot);
-                    if (found) code = found.code;
-                } else {
-                    const snap = await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).once('value');
-                    const data = snap.val() || {};
-                    const found = Object.values(data).find(r => r && r.lobby === lobby && r.slot === slot);
-                    if (found) code = found.code;
-                }
-            } catch (e) { console.warn("Firebase lookup failed:", e); }
-            
-            if (!code) {
-                status.textContent = `Is lobby + slot ka koi ${type === 'result' ? 'result' : 'room'} code nahi mila.`;
-                status.className = "text-xs text-center font-rajdhani text-red-400";
-                return;
-            }
             
             const tagKey = type === 'result' ? "result_code_" + code : "room_code_" + code;
             
