@@ -2929,7 +2929,7 @@
             if(!slRequireAdmin())return;
             const c=slNormCode(code); if(!c || !slFbOk())return;
             if(!confirm('Ye result code DELETE karna chahte hain?'))return;
-            try { await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+c).remove(); renderAdminResultCodesManager(); alert('Result code delete ho gaya.'); }
+            try { await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH+'/'+c).remove(); renderAdminResultCodesManager(); rskCleanupSubscribersForTag('result_code_'+c); alert('Result code delete ho gaya.'); }
             catch(err) { alert('Code delete nahi ho paya: '+(err.message||err)); }
         }
 
@@ -2954,10 +2954,12 @@
             const c=getAppConfig(),r=c.resultsList?.[i];
             if(!r)return;
             if(!confirm(`${r.lobby||'L1'} • ${r.slot} • ${r.date} ka secret code REMOVE karna chahte hain? Result data delete nahi hoga, sirf viewer ab is code se result nahi dekh payega.`))return;
+            const removedCode = r.code;
             r.code='';
             saveAppConfig(c);
             renderAdminResultsManager();
             syncResultsToFirebaseWithoutBlocking(c);
+            if (removedCode) rskCleanupSubscribersForTag('result_code_'+slNormCode(removedCode));
         }
 
         function editResultCode(i){
@@ -3814,7 +3816,7 @@
             if (!slRequireAdmin()) return;
             const r = adminSlotRooms[code]; if (!r) return;
             if (!confirm(`${r.slot} • ${r.lobby} ka secret code aur room ID/pass DELETE karna chahte hain?`)) return;
-            rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).remove().then(() => slApplyLocal('rooms', { [code]: null })).catch(e => { console.error(e); alert('Delete nahi ho paya: ' + slErrText(e)); });
+            rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code).remove().then(() => { slApplyLocal('rooms', { [code]: null }); rskCleanupSubscribersForTag('room_code_' + code); }).catch(e => { console.error(e); alert('Delete nahi ho paya: ' + slErrText(e)); });
         }
 
         function renderAdminSlotManagers() {
@@ -3999,6 +4001,48 @@
             if (saved && input) input.value = saved;
         }
 
+        // Best-effort: jab admin ek code (result ya room) DELETE kare, to us code ka
+        // OneSignal tag saare matching subscribers se hata do, taaki future me
+        // "Send Notification" is code ko target hi na kare (load/orphan subscribers na bachhein).
+        // Note: OneSignal me kisi doosre visitor ke device ko yahan se poora "unsubscribe"
+        // nahi kiya ja sakta (wo sirf unke apne browser se hota hai) — hum sirf tag hata
+        // sakte hain, jo practically wahi result deta hai: wo device ab is code ke liye
+        // kabhi target nahi hoga.
+        async function rskCleanupSubscribersForTag(tagKey) {
+            try {
+                const restKey = (document.getElementById('adminNotifyRestKey')?.value || '').trim()
+                    || localStorage.getItem(RSK_ONESIGNAL_KEY_STORAGE);
+                if (!restKey || !tagKey) return;
+                const headers = { "Content-Type": "application/json; charset=utf-8", "Authorization": "Key " + restKey };
+                let offset = 0;
+                const limit = 300;
+                let cleaned = 0;
+                for (let page = 0; page < 20; page++) {
+                    const resp = await fetch(`https://onesignal.com/api/v1/players?app_id=${RSK_ONESIGNAL_APP_ID}&limit=${limit}&offset=${offset}`, { headers });
+                    if (!resp.ok) break;
+                    const data = await resp.json();
+                    const players = Array.isArray(data.players) ? data.players : [];
+                    if (!players.length) break;
+                    const matches = players.filter(p => p && p.tags && p.tags[tagKey]);
+                    for (const p of matches) {
+                        try {
+                            await fetch(`https://onesignal.com/api/v1/players/${p.id}`, {
+                                method: "PUT",
+                                headers,
+                                body: JSON.stringify({ app_id: RSK_ONESIGNAL_APP_ID, tags: { [tagKey]: "" } })
+                            });
+                            cleaned++;
+                        } catch (_) {}
+                    }
+                    if (players.length < limit) break;
+                    offset += limit;
+                }
+                if (cleaned) console.log(`OneSignal: ${cleaned} subscriber(s) ka tag "${tagKey}" clear kar diya gaya.`);
+            } catch (e) {
+                console.warn('OneSignal tag cleanup skipped:', e);
+            }
+        }
+
         // Specific-code fields dikhao/chupao, jab "Kisko bhejna hai" badle
         function toggleAdminNotifyTarget() {
             const target = document.getElementById('adminNotifyTarget').value;
@@ -4030,9 +4074,19 @@
             try {
                 let allCodes = [];
                 if (type === 'result') {
-                    const snap = await rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value');
-                    const data = snap.val() || {};
-                    allCodes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
+                    // Result/Slot List jaisa hi behave kare: pending (upload se pehle) codes
+                    // aur already-uploaded live results, dono se codes+dates milao.
+                    const [pendingSnap, liveSnap] = await Promise.all([
+                        rskFirebaseDb.ref(RSK_RESULT_CODES_PATH).once('value'),
+                        rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value')
+                    ]);
+                    const pending = Object.values(pendingSnap.val() || {});
+                    const live = Object.values(liveSnap.val() || {}).filter(r => r && r.code);
+                    const merged = {};
+                    [...pending, ...live].forEach(r => {
+                        if (r && r.lobby === lobby && r.slot === slot && r.code) merged[r.code] = r;
+                    });
+                    allCodes = Object.values(merged);
                 } else {
                     const snap = await rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH).once('value');
                     const data = snap.val() || {};
@@ -4097,7 +4151,26 @@
             if (!message) { status.textContent = "Message likhein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             if (!restKey) { status.textContent = "REST API Key daalein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
             if (target === 'specific' && !code) { status.textContent = "Specific code likhein ya select karein!"; status.className = "text-xs text-center font-rajdhani text-red-400"; return; }
-            
+
+            if (target === 'specific') {
+                try {
+                    const c = slNormCode(code);
+                    const path = type === 'result' ? RSK_RESULT_CODES_PATH : RSK_SLOT_ROOMS_PATH;
+                    let exists = (await rskFirebaseDb.ref(path + '/' + c).once('value')).exists();
+                    if (!exists && type === 'result') {
+                        const liveSnap = await rskFirebaseDb.ref(RSK_RESULTS_PATH).once('value');
+                        exists = Object.values(liveSnap.val() || {}).some(r => r && slNormCode(r.code || '') === c);
+                    }
+                    if (!exists) {
+                        status.textContent = `❌ Code "${code}" ab exist nahi karta (delete ho chuka hai). Notification nahi bheja gaya.`;
+                        status.className = "text-xs text-center font-rajdhani text-red-400";
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Code existence check skipped:', e);
+                }
+            }
+
             localStorage.setItem(RSK_ONESIGNAL_KEY_STORAGE, restKey);
             status.textContent = "Sending...";
             status.className = "text-xs text-center font-rajdhani text-amber-400";
@@ -4122,7 +4195,7 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": "Basic " + restKey
+                        "Authorization": "Key " + restKey
                     },
                     body: JSON.stringify(payload)
                 });
@@ -4178,7 +4251,7 @@
 
             try {
                 const response = await fetch(`https://onesignal.com/api/v1/apps/${RSK_ONESIGNAL_APP_ID}`, {
-                    headers: { "Authorization": "Basic " + restKey }
+                    headers: { "Authorization": "Key " + restKey }
                 });
                 const result = await response.json();
 
