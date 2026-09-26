@@ -1286,13 +1286,9 @@
                 }, error => {
                     console.error('Firebase top banner listener error:', error);
                 });
-                // Slot list READ RULE content — LINK ya RULE TEXT, dono realtime.
-                rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).on('value', snapshot => {
-                    slRuleContent = normalizeSlotRuleContent(snapshot.val());
-                    renderSlotRuleLinkEverywhere();
-                }, error => {
-                    console.error('Firebase slot rule content listener error:', error);
-                });
+                // Slot list READ RULE content — VIEWERS load ONLY the active child
+                // (mode + link OR mode + text). They do not listen to the parent node.
+                startSlotRuleViewerListener();
             } catch (error) {
                 rskFirebaseReady = false;
                 console.error('Firebase initialization failed:', error);
@@ -3372,11 +3368,12 @@
         const RSK_SLOT_LISTS_PATH = 'rsk_esports_slot_lists';
         const RSK_SLOT_RULE_LINK_PATH = 'rsk_esports_slot_rule_link';
         let slRuleContent = { mode: 'link', link: '', text: '' };
+        let slRuleActiveRef = null;
+        let slRuleActiveListener = null;
+        let slRuleViewerStarted = false;
 
         function normalizeSlotRuleContent(v) {
-            // Backward compatible with the old plain URL and the previous
-            // {mode, link, text} format. New writes contain ONLY the active
-            // content so inactive content is never downloaded by viewers.
+            // Supports: new object format, old JSON-string format, and old plain URL.
             if (typeof v === 'string') {
                 const raw = v.trim();
                 if (raw) {
@@ -3385,7 +3382,7 @@
                         if (parsed && typeof parsed === 'object') {
                             const mode = parsed.mode === 'text' ? 'text' : 'link';
                             return mode === 'text'
-                                ? { mode: 'text', link: '', text: String(parsed.text || '') }
+                                ? { mode: 'text', link: '', text: String(parsed.text || parsed.value || '') }
                                 : { mode: 'link', link: String(parsed.link || parsed.value || '').trim(), text: '' };
                         }
                     } catch (_) {}
@@ -3397,6 +3394,62 @@
             return mode === 'text'
                 ? { mode: 'text', link: '', text: String(v.text || v.value || '') }
                 : { mode: 'link', link: String(v.link || v.value || '').trim(), text: '' };
+        }
+
+        function stopSlotRuleActiveListener() {
+            if (slRuleActiveRef && slRuleActiveListener) {
+                try { slRuleActiveRef.off('value', slRuleActiveListener); } catch (_) {}
+            }
+            slRuleActiveRef = null;
+            slRuleActiveListener = null;
+        }
+
+        function startSlotRuleViewerListener() {
+            if (slRuleViewerStarted || !slFbOk()) return;
+            slRuleViewerStarted = true;
+
+            const modeRef = rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH + '/mode');
+            modeRef.on('value', modeSnap => {
+                const rawMode = modeSnap.val();
+
+                // New active-only format: read ONLY /mode, then ONLY /link OR /text.
+                if (rawMode === 'link' || rawMode === 'text') {
+                    attachActiveSlotRuleChild(rawMode);
+                    return;
+                }
+
+                // One-time backward compatibility for the old single-string format.
+                // After the admin saves once, the new child format is used and this
+                // parent fallback is never touched by normal viewers again.
+                rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).once('value').then(s => {
+                    const legacy = normalizeSlotRuleContent(s.val());
+                    slRuleContent = legacy;
+                    renderSlotRuleLinkEverywhere();
+                }).catch(e => console.error('Legacy slot rule read error:', e));
+            }, error => {
+                console.error('Firebase slot rule mode listener error:', error);
+            });
+        }
+
+        function attachActiveSlotRuleChild(mode) {
+            stopSlotRuleActiveListener();
+            slRuleContent = { mode, link: '', text: '' };
+            renderSlotRuleLinkEverywhere();
+
+            const child = mode === 'text' ? 'text' : 'link';
+            const ref = rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH + '/' + child);
+            const listener = snap => {
+                const value = snap.val();
+                slRuleContent = mode === 'text'
+                    ? { mode: 'text', link: '', text: String(value || '') }
+                    : { mode: 'link', link: String(value || '').trim(), text: '' };
+                renderSlotRuleLinkEverywhere();
+            };
+            slRuleActiveRef = ref;
+            slRuleActiveListener = listener;
+            ref.on('value', listener, error => {
+                console.error('Firebase active slot rule listener error:', error);
+            });
         }
 
         function toggleAdminSlotRuleMode() {
@@ -3440,15 +3493,16 @@
                 return;
             }
 
-            // Store ONLY the active content. The inactive LINK/TEXT is not
-            // written to Firebase, so viewers never download hidden content.
+            // Active-only Firebase structure:
+            // /mode = 'link' or 'text'
+            // /link = active URL OR null
+            // /text = active text OR null
+            // The inactive child is explicitly removed, so it is not stored.
             const payload = mode === 'link'
-                ? { mode: 'link', value: link }
-                : { mode: 'text', value: text };
+                ? { mode: 'link', link, text: null }
+                : { mode: 'text', link: null, text };
             try {
-                // Keep the Firebase value a STRING for compatibility with the
-                // existing database rules. The viewer decodes this JSON string.
-                await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(JSON.stringify(payload));
+                await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(payload);
                 slRuleContent = mode === 'link'
                     ? { mode: 'link', link, text: '' }
                     : { mode: 'text', link: '', text };
@@ -3731,6 +3785,7 @@
         /* ---------------- ADMIN FIREBASE AUTH ---------------- */
         let slAdminPanelOpen = false;
         let slOpenDashboardAfterLogin = false;
+        let slAdminRuleListener = null;
 
         function slAuthOk() {
             try { return !!(window.firebase && firebase.auth && firebase.auth().currentUser); } catch (_) { return false; }
@@ -3827,6 +3882,19 @@
             };
             roomsRef.on('value', s => { adminSlotErr.rooms = ''; adminSlotRooms = s.val() || {}; renderAdminSlotManagers(); slFillRoomForm(true); }, failed('rooms'));
             listsRef.on('value', s => { adminSlotErr.lists = ''; adminSlotLists = s.val() || {}; renderAdminSlotManagers(); }, failed('lists'));
+
+            // Admin is authenticated, so it may read the full rule node to
+            // populate the editor. Viewers never use this parent listener.
+            const ruleRef = rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH);
+            ruleRef.off('value', slAdminRuleListener);
+            slAdminRuleListener = s => {
+                slRuleContent = normalizeSlotRuleContent(s.val());
+                renderSlotRuleLinkEverywhere();
+            };
+            ruleRef.on('value', slAdminRuleListener, e => {
+                console.error('Admin slot rule listener error:', e);
+            });
+
             renderAdminSlotManagers();
         }
 
