@@ -1135,9 +1135,8 @@
                     </div>
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Select Date *</label>
-                        <select id="adminNotifyDate" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
-                            <option value="">-- Sabhi Dates --</option>
-                        </select>
+                        <input type="date" id="adminNotifyDate" onchange="loadAvailableCodes()" class="w-full bg-black/50 border border-esports-lightPurple text-white py-2 px-3 rounded-lg font-rajdhani">
+                        <p class="text-[10px] text-gray-400 mt-1">Khaali chodne par sabhi dates ke codes dikhenge.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-rajdhani font-bold text-gray-300 uppercase mb-1">Code (Auto-fill / Edit) *</label>
@@ -4093,17 +4092,9 @@
                     allCodes = Object.values(data).filter(r => r && r.lobby === lobby && r.slot === slot);
                 }
 
-                // Date dropdown ko available dates se refresh karo, purana selection bachaate hue
-                if (dateSelect) {
-                    const uniqueDates = [...new Set(allCodes.map(c => c.date).filter(Boolean))].sort().reverse();
-                    const prevSelectedDate = dateSelect.value;
-                    dateSelect.innerHTML = '<option value="">-- Sabhi Dates --</option>' +
-                        uniqueDates.map(d => `<option value="${d}">${d}</option>`).join('');
-                    if (uniqueDates.includes(prevSelectedDate)) {
-                        dateSelect.value = prevSelectedDate;
-                    }
-                }
-
+                // Ab Select Date ek native date picker (input type="date") hai, Results / Slot List /
+                // Room ID fields ki tarah. Isse koi dropdown option list nahi bharni, bas iski value
+                // seedhe filter karne ke liye use hoti hai. Khaali value = "Sabhi Dates".
                 const finalDate = dateSelect ? dateSelect.value : '';
                 const filteredCodes = finalDate ? allCodes.filter(c => c.date === finalDate) : allCodes;
 
@@ -4253,7 +4244,9 @@
                 const response = await fetch(`https://onesignal.com/api/v1/apps/${RSK_ONESIGNAL_APP_ID}`, {
                     headers: { "Authorization": "Key " + restKey }
                 });
-                const result = await response.json();
+
+                let result = {};
+                try { result = await response.json(); } catch (parseErr) { /* non-JSON response, ignore */ }
 
                 if (response.ok) {
                     const messagable = result.messagable_players ?? 0;
@@ -4268,9 +4261,13 @@
                     status.className = "text-xs text-center font-rajdhani text-red-400";
                 }
             } catch (e) {
-                console.error("Subscriber check failed:", e);
-                status.textContent = "❌ Failed: " + e.message;
-                status.className = "text-xs text-center font-rajdhani text-red-400";
+                // "Failed to fetch" yahan generally isliye aata hai kyunki browser se seedhe is
+                // OneSignal endpoint ko call karne par CORS block ho jata hai (ye website ki
+                // galti nahi hai, OneSignal is GET endpoint par browser requests allow nahi karta).
+                // Isliye raw technical error dikhane ke bajaye ek clear, samajhne layak message dikhate hain.
+                console.warn("Subscriber check could not complete (likely a browser CORS restriction):", e);
+                status.textContent = "⚠️ Subscribers count is browser se directly check nahi ho pa raha (security/CORS restriction). Key sahi hai to SEND NOTIFICATION kaam karega — subscribers dekhne ke liye OneSignal dashboard (onesignal.com → Audience) kholein.";
+                status.className = "text-xs text-center font-rajdhani text-amber-400";
             }
         }
 
