@@ -1029,6 +1029,7 @@
     <!-- Firebase Realtime Database (used for .PC match results synchronization) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
     <!-- LOGIC JS -->
@@ -1055,6 +1056,11 @@
         const RSK_NOTICE_PATH = 'rsk_esports_notice';
         const RSK_TOP_BANNER_PATH = 'rsk_esports_top_banner';
         const RSK_RESULT_CODES_PATH = 'rsk_esports_result_codes';
+        const RSK_NOTIFICATION_TOKENS_PATH = 'rsk_esports_notification_tokens';
+        const RSK_VAPID_KEY = 'BJdKMMaUlf2p2PR3SRKy_a09iRvh0DbKl3xb1MWfnw2xO5Ogfa9yNdF2XQOCTGUMUQEjUU3tpFZYDHNwvZcJmPI';
+        let rskFirebaseMessaging = null;
+        let rskMessagingReady = false;
+        let rskNotificationPermissionAsked = false;
 
         function initRskFirebase() {
             try {
@@ -1062,6 +1068,7 @@
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 rskFirebaseDb = firebase.database();
                 rskFirebaseReady = true;
+                initRskFirebaseMessaging();
                 // Result data is NOT auto-loaded for viewers. It is fetched only after secret-code submit.
 
                 // Real-time listener: keeps the notice popup in sync for every viewer.
@@ -1089,6 +1096,66 @@
                 rskFirebaseReady = false;
                 console.error('Firebase initialization failed:', error);
             }
+        }
+
+        async function initRskFirebaseMessaging() {
+            try {
+                if (!('serviceWorker' in navigator) || !('Notification' in window) || !firebase.messaging) return;
+                if (firebase.messaging.isSupported && !firebase.messaging.isSupported()) return;
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                rskFirebaseMessaging = firebase.messaging();
+                rskMessagingReady = true;
+                rskFirebaseMessaging.onMessage(payload => {
+                    const n = payload && payload.notification ? payload.notification : {};
+                    const title = n.title || (payload && payload.data && payload.data.title) || 'RSK ESPORTS';
+                    const body = n.body || (payload && payload.data && payload.data.body) || '';
+                    if (Notification.permission === 'granted' && body) {
+                        try { new Notification(title, { body, icon: '/favicon.ico', tag: (payload.data && payload.data.tag) || 'rsk-esports' }); } catch (_) {}
+                    }
+                });
+                window.rskFcmServiceWorkerRegistration = registration;
+            } catch (err) {
+                rskMessagingReady = false;
+                console.warn('FCM web messaging setup skipped:', err);
+            }
+        }
+
+        function rskNotificationTokenKey(token) {
+            return btoa(unescape(encodeURIComponent(String(token || '')))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '').slice(0, 700);
+        }
+
+        async function registerRskNotificationForCode(type, code) {
+            const c = slNormCode(code);
+            if (!c || !rskFirebaseReady || !rskFirebaseDb || !rskMessagingReady) return false;
+            if (!('Notification' in window)) return false;
+            try {
+                if (Notification.permission !== 'granted') {
+                    if (rskNotificationPermissionAsked) return false;
+                    rskNotificationPermissionAsked = true;
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') return false;
+                }
+                const token = await rskFirebaseMessaging.getToken({ vapidKey: RSK_VAPID_KEY, serviceWorkerRegistration: window.rskFcmServiceWorkerRegistration });
+                if (!token) return false;
+                const key = rskNotificationTokenKey(token);
+                await rskFirebaseDb.ref(RSK_NOTIFICATION_TOKENS_PATH + '/' + type + '/' + c + '/' + key).set({
+                    token,
+                    code: c,
+                    type,
+                    updatedAt: Date.now(),
+                    userAgent: navigator.userAgent || ''
+                });
+                localStorage.setItem('rsk_fcm_token_' + type + '_' + c, token);
+                return true;
+            } catch (err) {
+                console.warn('FCM token registration failed:', err);
+                return false;
+            }
+        }
+
+        function rskShowOpenPageNotification(title, body, tag) {
+            if (!('Notification' in window) || Notification.permission !== 'granted' || !body) return;
+            try { new Notification(title || 'RSK ESPORTS', { body, icon: '/favicon.ico', tag: tag || 'rsk-esports' }); } catch (_) {}
         }
 
         async function syncResultsToFirebase(config) {
@@ -1880,6 +1947,7 @@
             // If a result is already open and admin deletes it, do not force-close it.
             if (!currentResultSlides.length && nextResults.length) {
                 rsViewerResults = nextResults;
+                rskShowOpenPageNotification('RESULT AVAILABLE', 'Aapka result upload ho gaya hai. Ab result dekh sakte hain.', 'rsk-result-' + code);
                 const entry = nextResults[0] || codeEntry || {};
                 rsUnlockedGroup = { slot: entry.slot || '1-3 PM', lobby: entry.lobby || 'L1', date: entry.date || '' };
                 const lobbyEl = document.getElementById('resultLobbySelect');
@@ -1975,6 +2043,7 @@
                 updateResultDateOptions(entry.date || '');
                 displaySelectedResult();
                 rsStartLiveResultWatch(code);
+                registerRskNotificationForCode('result', code);
             } catch (err) {
                 console.error('Result secret code check failed:', err);
                 rsShowError('Code check nahi ho paya. Thodi der baad dobara try karein.');
@@ -3134,6 +3203,7 @@
                 if (!room || !room.slot || !room.lobby) { slShowError('Invalid secret code! Sahi code daalein.'); return; }
                 slViewerCode = code;
                 slAttachViewer(code);
+                registerRskNotificationForCode('slot', code);
             } catch (err) {
                 console.error('Secret code check failed:', err);
                 slShowError('Code check nahi ho paya. Thodi der baad dobara try karein.');
@@ -3145,6 +3215,7 @@
         function slAttachViewer(code) {
             slDetachViewer();
             slViewerRoomRef = rskFirebaseDb.ref(RSK_SLOT_ROOMS_PATH + '/' + code);
+            let previousRoomNotificationState = '';
             slViewerRoomRef.on('value', snap => {
                 const r = snap.val();
                 if (!r || !r.slot || !r.lobby) {
@@ -3152,13 +3223,27 @@
                     slShowStep('code'); slShowError('Ye secret code ab valid nahi hai. Naya code daalein.');
                     return;
                 }
+                const roomNotificationState = JSON.stringify(r.matches || {});
+                if (previousRoomNotificationState && previousRoomNotificationState !== roomNotificationState) {
+                    rskShowOpenPageNotification('ROOM ID & PASS UPDATED', `${r.slot} • ${r.lobby} ke room details update ho gaye.`, 'rsk-room-' + code);
+                }
+                previousRoomNotificationState = roomNotificationState;
                 slViewerRoom = r;
                 const gk = slGroupKey(r.slot, r.lobby);
                 if (gk !== slViewerListKey) {
                     if (slViewerListRef) slViewerListRef.off();
                     slViewerListKey = gk; slViewerLists = null;
                     slViewerListRef = rskFirebaseDb.ref(RSK_SLOT_LISTS_PATH + '/' + gk);
-                    slViewerListRef.on('value', s => { slViewerLists = s.val() || {}; renderSlotGroupView(); });
+                    let previousSlotListNotificationState = '';
+                    slViewerListRef.on('value', s => {
+                        slViewerLists = s.val() || {};
+                        const nextSlotListNotificationState = JSON.stringify(slViewerLists);
+                        if (previousSlotListNotificationState && previousSlotListNotificationState !== nextSlotListNotificationState) {
+                            rskShowOpenPageNotification('SLOT LIST UPDATED', `${r.slot} • ${r.lobby} ki slot list update ho gayi.`, 'rsk-slot-list-' + code);
+                        }
+                        previousSlotListNotificationState = nextSlotListNotificationState;
+                        renderSlotGroupView();
+                    });
                 }
                 renderSlotGroupView();
             }, err => { console.error('Slot room listener error:', err); slShowError('Data load nahi ho paya.'); });
