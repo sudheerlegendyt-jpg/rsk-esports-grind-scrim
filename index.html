@@ -2116,7 +2116,7 @@
                 updateResultDateOptions(entry.date || '');
                 displaySelectedResult();
                 rsStartLiveResultWatch(code);
-                registerRskNotificationForCode('result', code);
+                // registerRskNotificationForCode('result', code);
 
                 // OneSignal: Permission maango aur Result code tag save karo
                 OneSignalDeferred.push(async function(OneSignal) {
@@ -3299,7 +3299,7 @@
                 if (!room || !room.slot || !room.lobby) { slShowError('Invalid secret code! Sahi code daalein.'); return; }
                 slViewerCode = code;
                 slAttachViewer(code);
-                registerRskNotificationForCode('slot', code);
+                // registerRskNotificationForCode('slot', code);
 
                 // OneSignal: Permission maango aur Room code tag save karo
                 OneSignalDeferred.push(async function(OneSignal) {
