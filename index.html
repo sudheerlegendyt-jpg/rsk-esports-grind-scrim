@@ -3374,31 +3374,29 @@
         let slRuleContent = { mode: 'link', link: '', text: '' };
 
         function normalizeSlotRuleContent(v) {
-            // Backward compatible: old Firebase value was a plain URL string.
-            // New LINK / RULE TEXT data is stored as a JSON string so existing
-            // Firebase rules that require a string continue to allow the write.
+            // Backward compatible with the old plain URL and the previous
+            // {mode, link, text} format. New writes contain ONLY the active
+            // content so inactive content is never downloaded by viewers.
             if (typeof v === 'string') {
                 const raw = v.trim();
                 if (raw) {
                     try {
                         const parsed = JSON.parse(raw);
                         if (parsed && typeof parsed === 'object') {
-                            return {
-                                mode: parsed.mode === 'text' ? 'text' : 'link',
-                                link: String(parsed.link || '').trim(),
-                                text: String(parsed.text || '')
-                            };
+                            const mode = parsed.mode === 'text' ? 'text' : 'link';
+                            return mode === 'text'
+                                ? { mode: 'text', link: '', text: String(parsed.text || '') }
+                                : { mode: 'link', link: String(parsed.link || parsed.value || '').trim(), text: '' };
                         }
                     } catch (_) {}
                 }
                 return { mode: 'link', link: raw, text: '' };
             }
             if (!v || typeof v !== 'object') return { mode: 'link', link: '', text: '' };
-            return {
-                mode: v.mode === 'text' ? 'text' : 'link',
-                link: String(v.link || '').trim(),
-                text: String(v.text || '')
-            };
+            const mode = v.mode === 'text' ? 'text' : 'link';
+            return mode === 'text'
+                ? { mode: 'text', link: '', text: String(v.text || v.value || '') }
+                : { mode: 'link', link: String(v.link || v.value || '').trim(), text: '' };
         }
 
         function toggleAdminSlotRuleMode() {
@@ -3442,12 +3440,18 @@
                 return;
             }
 
-            const payload = { mode, link: mode === 'link' ? link : '', text: mode === 'text' ? text : '' };
+            // Store ONLY the active content. The inactive LINK/TEXT is not
+            // written to Firebase, so viewers never download hidden content.
+            const payload = mode === 'link'
+                ? { mode: 'link', value: link }
+                : { mode: 'text', value: text };
             try {
                 // Keep the Firebase value a STRING for compatibility with the
                 // existing database rules. The viewer decodes this JSON string.
                 await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(JSON.stringify(payload));
-                slRuleContent = payload;
+                slRuleContent = mode === 'link'
+                    ? { mode: 'link', link, text: '' }
+                    : { mode: 'text', link: '', text };
                 renderSlotRuleLinkEverywhere();
                 if (status) {
                     status.textContent = mode === 'link'
