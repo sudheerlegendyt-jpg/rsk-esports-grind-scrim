@@ -3374,7 +3374,25 @@
         let slRuleContent = { mode: 'link', link: '', text: '' };
 
         function normalizeSlotRuleContent(v) {
-            if (typeof v === 'string') return { mode: 'link', link: v.trim(), text: '' };
+            // Backward compatible: old Firebase value was a plain URL string.
+            // New LINK / RULE TEXT data is stored as a JSON string so existing
+            // Firebase rules that require a string continue to allow the write.
+            if (typeof v === 'string') {
+                const raw = v.trim();
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (parsed && typeof parsed === 'object') {
+                            return {
+                                mode: parsed.mode === 'text' ? 'text' : 'link',
+                                link: String(parsed.link || '').trim(),
+                                text: String(parsed.text || '')
+                            };
+                        }
+                    } catch (_) {}
+                }
+                return { mode: 'link', link: raw, text: '' };
+            }
             if (!v || typeof v !== 'object') return { mode: 'link', link: '', text: '' };
             return {
                 mode: v.mode === 'text' ? 'text' : 'link',
@@ -3426,7 +3444,9 @@
 
             const payload = { mode, link: mode === 'link' ? link : '', text: mode === 'text' ? text : '' };
             try {
-                await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(payload);
+                // Keep the Firebase value a STRING for compatibility with the
+                // existing database rules. The viewer decodes this JSON string.
+                await rskFirebaseDb.ref(RSK_SLOT_RULE_LINK_PATH).set(JSON.stringify(payload));
                 slRuleContent = payload;
                 renderSlotRuleLinkEverywhere();
                 if (status) {
@@ -3644,7 +3664,7 @@
             return `<div class="bg-black/60 border border-esports-lightPurple rounded-lg px-2 py-1">
                 <p class="text-[9px] font-rajdhani font-bold text-gray-400 uppercase mb-0.5 leading-none"><i class="fa-solid ${icon} text-esports-yellow mr-1"></i>${label}</p>
                 ${has ? `<div class="flex items-center justify-between gap-2">
-                    <span class="font-mono text-sm font-bold text-amber-300 whitespace-nowrap" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
+                    <span class="font-mono text-sm font-bold text-amber-300 break-all" style="user-select:text;-webkit-user-select:text">${esc(value)}</span>
                     <button type="button" data-copy="${esc(value)}" onclick="slCopyFrom(this)" class="shrink-0 bg-esports-yellow hover:bg-amber-400 text-black font-rajdhani text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-none"><i class="fa-regular fa-copy mr-1"></i>COPY</button>
                 </div>` : `<p class="text-amber-400 font-teko text-sm tracking-wider animate-pulse leading-none">COMING SOON...</p>`}
             </div>`;
@@ -3670,7 +3690,7 @@
                     <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-clock mr-1"></i>IDP: ${idpTime ? esc(idpTime) : 'COMING SOON...'}</span>
                     <span class="font-rajdhani text-[10px] font-bold text-amber-300 bg-black/50 border border-esports-lightPurple rounded px-1.5 py-0.5 leading-none"><i class="fa-solid fa-flag-checkered mr-1"></i>START: ${startTime ? esc(startTime) : 'COMING SOON...'}</span>
                 </div>
-                <div class="grid grid-cols-1 gap-1.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     ${slInfoRow('ROOM ID', m.roomId, 'fa-door-open')}
                     ${slInfoRow('PASSWORD', m.roomPass, 'fa-key')}
                 </div>
