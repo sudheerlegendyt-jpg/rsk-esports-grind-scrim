@@ -8,14 +8,26 @@
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
         window.OneSignalDeferred = window.OneSignalDeferred || [];
+        function rskLog(msg) {
+            if (typeof rskDebugLog === 'function') rskDebugLog(msg); else console.log(msg);
+        }
         OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "32ceb847-76a4-4807-8090-0bcbeb510d0c",
-                notifyButton: { enable: false },
-                allowLocalhostAsSecureOrigin: true,
-                serviceWorkerPath: "/OneSignalSDKWorker.js",
-                serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js"
-            });
+            try {
+                rskLog('🔵 OneSignal init shuru ho raha hai...');
+                await OneSignal.init({
+                    appId: "32ceb847-76a4-4807-8090-0bcbeb510d0c",
+                    notifyButton: { enable: false },
+                    allowLocalhostAsSecureOrigin: true,
+                    serviceWorkerPath: "/OneSignalSDKWorker.js",
+                    serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js"
+                });
+                rskLog('✅ OneSignal init SUCCESS');
+                rskLog('Permission status: ' + (window.Notification ? Notification.permission : 'Notification API not supported'));
+                window.rskOneSignalInitDone = true;
+            } catch (e) {
+                rskLog('❌ OneSignal init FAILED: ' + (e && e.message ? e.message : e));
+                window.rskOneSignalInitDone = true;
+            }
         });
     </script>
     <!-- Tailwind CSS CDN -->
@@ -98,6 +110,43 @@
     </style>
 </head>
 <body class="bg-grid min-h-screen flex flex-col justify-between selection:bg-esports-yellow selection:text-black">
+
+    <!-- RSK DEBUG BOX: OneSignal troubleshooting ke liye, screenshot leke bhej sakte ho -->
+    <div id="rskDebugBox" style="display:none; position:fixed; top:0; left:0; right:0; z-index:99999; background:#111; color:#0f0; font-family:monospace; font-size:11px; padding:8px; max-height:35vh; overflow-y:auto; border-bottom:2px solid #0f0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <b style="color:#fff;">RSK DEBUG LOG (screenshot leke bhej do)</b>
+            <button onclick="document.getElementById('rskDebugBox').style.display='none'" style="background:#f00; color:#fff; border:none; padding:2px 8px; border-radius:4px;">Close X</button>
+        </div>
+        <div id="rskDebugContent"></div>
+    </div>
+    <button id="rskDebugToggleBtn" onclick="(function(){var b=document.getElementById('rskDebugBox'); b.style.display = (b.style.display==='none'?'block':'none');})()" style="position:fixed; bottom:10px; right:10px; z-index:99999; background:#0f0; color:#000; font-weight:bold; border:none; padding:8px 12px; border-radius:20px; font-family:monospace; font-size:11px; box-shadow:0 2px 6px rgba(0,0,0,0.5);">🐞 Debug</button>
+    <script>
+        function rskDebugLog(msg) {
+            try {
+                const box = document.getElementById('rskDebugBox');
+                const content = document.getElementById('rskDebugContent');
+                if (!box || !content) return;
+                box.style.display = 'block';
+                const time = new Date().toLocaleTimeString();
+                const line = document.createElement('div');
+                line.textContent = '[' + time + '] ' + msg;
+                content.appendChild(line);
+                box.scrollTop = box.scrollHeight;
+            } catch (e) {}
+        }
+        window.addEventListener('error', function(e) {
+            rskDebugLog('❌ JS ERROR: ' + (e.message || 'unknown') + ' (' + (e.filename || '') + ':' + (e.lineno || '') + ')');
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            rskDebugLog('❌ PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+        });
+        window.rskOneSignalInitDone = false;
+        setTimeout(function() {
+            if (!window.rskOneSignalInitDone) {
+                rskDebugLog('⚠️ WARNING: 6 second ho gaye, OneSignal SDK abhi tak respond nahi hua. Ho sakta hai SDK script load hi na hui ho (network/CSP block) ya OneSignalSDKWorker.js file missing ho.');
+            }
+        }, 6000);
+    </script>
 
     <!-- 1. TOP MOST HIGHLIGHTED ENTRY BANNER BOX -->
     <div class="bg-gradient-to-r from-esports-yellow via-amber-400 to-esports-yellow text-black py-0.5 px-3 text-center font-teko text-[15px] md:text-lg leading-tight font-extrabold tracking-wide shadow-md border-b border-amber-600 flex items-center justify-center gap-1.5">
@@ -2119,23 +2168,30 @@
                 // registerRskNotificationForCode('result', code);
 
                 // OneSignal: Permission maango aur Result code tag save karo
+                rskLog('🔵 Result: OneSignal permission maang rahe hain (code: ' + code + ')');
                 OneSignalDeferred.push(async function(OneSignal) {
                     try {
                         // Pehle notification permission maango
+                        rskLog('🔵 Result: requestPermission() call ho raha hai...');
                         const permission = await OneSignal.Notifications.requestPermission();
                         console.log("OneSignal permission:", permission);
+                        rskLog('🟢 Result: permission response = ' + permission);
                         
                         if (permission) {
                             const playerId = await OneSignal.getUserId();
+                            rskLog('Result: playerId = ' + playerId);
                             if (playerId) {
                                 await OneSignal.sendTag("result_code_" + code, "subscribed");
                                 console.log("OneSignal: Result tag saved for code:", code);
+                                rskLog('✅ Result: tag saved (result_code_' + code + ')');
                             }
                         } else {
                             console.warn("OneSignal: Permission denied by user");
+                            rskLog('🔴 Result: permission DENIED ya block hai');
                         }
                     } catch (e) {
                         console.warn("OneSignal tag save failed:", e);
+                        rskLog('❌ Result: ERROR - ' + (e && e.message ? e.message : e));
                     }
                 });
             } catch (err) {
@@ -3302,23 +3358,30 @@
                 // registerRskNotificationForCode('slot', code);
 
                 // OneSignal: Permission maango aur Room code tag save karo
+                rskLog('🔵 Room: OneSignal permission maang rahe hain (code: ' + code + ')');
                 OneSignalDeferred.push(async function(OneSignal) {
                     try {
                         // Pehle notification permission maango
+                        rskLog('🔵 Room: requestPermission() call ho raha hai...');
                         const permission = await OneSignal.Notifications.requestPermission();
                         console.log("OneSignal permission:", permission);
+                        rskLog('🟢 Room: permission response = ' + permission);
                         
                         if (permission) {
                             const playerId = await OneSignal.getUserId();
+                            rskLog('Room: playerId = ' + playerId);
                             if (playerId) {
                                 await OneSignal.sendTag("room_code_" + code, "subscribed");
                                 console.log("OneSignal: Room tag saved for code:", code);
+                                rskLog('✅ Room: tag saved (room_code_' + code + ')');
                             }
                         } else {
                             console.warn("OneSignal: Permission denied by user");
+                            rskLog('🔴 Room: permission DENIED ya block hai');
                         }
                     } catch (e) {
                         console.warn("OneSignal tag save failed:", e);
+                        rskLog('❌ Room: ERROR - ' + (e && e.message ? e.message : e));
                     }
                 });
             } catch (err) {
